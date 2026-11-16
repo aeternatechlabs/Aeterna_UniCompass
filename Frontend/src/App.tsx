@@ -9,6 +9,10 @@ import { PopularPathways } from "./components/PopularPathways";
 import { SmartMatchSection } from "./components/SmartMatchSection";
 import { CostComparison } from "./components/CostComparison";
 import { ShortProgrammes } from "./components/ShortProgrammes";
+import { FourSteps } from "./components/FourSteps";
+import { CtaBanner } from "./components/CtaBanner";
+import { Footer } from "./components/Footer";
+import { GlobalPathModal } from "./components/GlobalPathModal";
 
 const App = () => {
   const [theme, setTheme] = useState<ThemeMode>("light");
@@ -21,8 +25,7 @@ const App = () => {
 
   const [isGlobalPathModalOpen, setIsGlobalPathModalOpen] = useState(false);
   const [isSmartMatchModalOpen, setIsSmartMatchModalOpen] = useState(false);
-   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
-
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
 
   useEffect(() => {
     if (theme === "dark") {
@@ -46,6 +49,10 @@ const App = () => {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
+
+  const handleDiscussWithAeterna = () => {
+    setIsAiChatOpen(true);
+  };
   const handleSelectDestination = (countryName: string) => {
     setFilters((prev) => ({ ...prev, destination: countryName }));
     setIsGlobalPathModalOpen(true);
@@ -63,9 +70,9 @@ const App = () => {
     setIsGlobalPathModalOpen(true);
   };
 
-  const handleLearnMoreShortProgrammes=(_type:string)=>{
+  const handleLearnMoreShortProgrammes = (_type: string) => {
     setIsAiChatOpen(true);
-  }
+  };
 
   return (
     <div
@@ -128,7 +135,37 @@ const App = () => {
           theme={theme}
           onLearnMore={handleLearnMoreShortProgrammes}
         />
+
+        {/* Section 6: Four Steps */}
+        <FourSteps theme={theme} />
+
+        {/* Section 7: Not sure where to begin? CTA */}
+        <CtaBanner theme={theme} onOpenAiGuide={() => setIsAiChatOpen(true)} />
       </main>
+
+      {/* Footer */}
+      <Footer
+        theme={theme}
+        onOpenSmartMatch={() => setIsSmartMatchModalOpen(true)}
+        onScrollToSection={handleScrollToSection}
+        onOpenGlobalPath={() => setIsGlobalPathModalOpen(true)}
+      />
+
+      {/* Modals & Popups */}
+      <GlobalPathModal
+        isOpen={isGlobalPathModalOpen}
+        onClose={() => setIsGlobalPathModalOpen(false)}
+        theme={theme}
+        filters={filters}
+        onDiscussWithAeterna={handleDiscussWithAeterna}
+      />
+
+      <SmartMatchModal
+        isOpen={isSmartMatchModalOpen}
+        onClose={() => setIsSmartMatchModalOpen(false)}
+        theme={theme}
+        onDiscussWithAeterna={handleDiscussWithAeterna}
+      />
     </div>
   );
 };
