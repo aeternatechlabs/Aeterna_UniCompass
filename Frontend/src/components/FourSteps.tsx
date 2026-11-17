@@ -31,6 +31,7 @@ export const FourSteps: React.FC<FourStepsProps> = ({ theme }) => {
   ];
   return (
     <section
+      id="foursteps"
       className={`w-full py-16 sm:py-20 transition-colors duration-200 font-sans border-t ${
         isLight
           ? "bg-[#CAE4DB]/15 border-[#CAE4DB]"

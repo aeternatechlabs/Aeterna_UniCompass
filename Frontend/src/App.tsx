@@ -13,6 +13,8 @@ import { FourSteps } from "./components/FourSteps";
 import { CtaBanner } from "./components/CtaBanner";
 import { Footer } from "./components/Footer";
 import { GlobalPathModal } from "./components/GlobalPathModal";
+import { SmartMatchModal } from "./components/SmartMatchModel";
+import { AiChatWidget } from "./components/AiChatWidget";
 
 const App = () => {
   const [theme, setTheme] = useState<ThemeMode>("light");
@@ -46,7 +48,7 @@ const App = () => {
   const handleScrollToSection = (sectionId: string) => {
     const el = document.getElementById(sectionId);
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   };
 
@@ -97,7 +99,7 @@ const App = () => {
         <Hero
           theme={theme}
           onDiscoverClick={() => setIsGlobalPathModalOpen(true)}
-          onSeeHowItWorksClick={() => handleScrollToSection("smart-match")}
+          onSeeHowItWorksClick={() => handleScrollToSection("foursteps")}
         />
 
         {/* Infinite scrolling ticker */}
@@ -165,6 +167,14 @@ const App = () => {
         onClose={() => setIsSmartMatchModalOpen(false)}
         theme={theme}
         onDiscussWithAeterna={handleDiscussWithAeterna}
+      />
+
+      {/* Floating Ask Global AI Assistant */}
+      <AiChatWidget
+        isOpen={isAiChatOpen}
+        onToggle={() => setIsAiChatOpen(!isAiChatOpen)}
+        theme={theme}
+        currentFilters={filters}
       />
     </div>
   );
