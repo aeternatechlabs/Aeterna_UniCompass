@@ -11,6 +11,7 @@ import {
   BUDGET_OPTIONS,
   DESTINATION_OPTIONS,
 } from "../data/mockData";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 interface SmartMatchModalProps {
   isOpen: boolean;
@@ -53,19 +54,24 @@ export const SmartMatchModal: React.FC<SmartMatchModalProps> = ({
     setLoading(true);
 
     try {
-      const response = await fetch("/api/evaluate", {
+      const response = await fetch(`${API_BASE_URL}/api/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setResult(data);
-      } else {
-        generateLocalResult(profile);
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.data) {
+        throw new Error(data.message || "Profile evaluation failed");
       }
-    } catch {
+
+      // Backend returns the result inside data.data
+      setResult(data.data);
+    } catch (error) {
+      console.error("Profile Evaluation Error:", error);
+
+      // Keep your existing local fallback
       generateLocalResult(profile);
     } finally {
       setLoading(false);
@@ -149,10 +155,10 @@ export const SmartMatchModal: React.FC<SmartMatchModalProps> = ({
 
         {/* Input Form */}
         <form onSubmit={handleEvaluate} className="space-y-3.5 mb-5">
-          {/* 1. Undergraduate Course / Education */}
+          {/* 1. Current Education / Education */}
           <div>
             <label className="block text-[11px] font-bold text-[#7A9D96] mb-1">
-              Undergraduate Course / Education
+              Education Level / Current Qualification
             </label>
             <div className="relative">
               <select

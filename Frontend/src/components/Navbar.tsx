@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Moon, Sun, ArrowRight, Menu, X } from "lucide-react";
 export type ThemeMode = "light" | "dark";
 
@@ -18,18 +18,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenGlobalPath,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const isLight = theme === "light";
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      onOpenSmartMatch();
-      setSearchOpen(false);
-    }
-  };
 
   return (
     <header className="sticky top-0 z-40 w-full font-sans">

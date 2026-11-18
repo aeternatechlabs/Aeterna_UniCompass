@@ -50,6 +50,41 @@ export interface CountryCostData {
   verificationNotice: string;
 }
 
+// Backend cost API types
+
+export interface CostRange {
+  min: number;
+  max: number;
+}
+
+export interface BackendCountryCost {
+  _id: string;
+  country: {
+    _id: string;
+    country: string;
+    slug: string;
+    flag: string;
+    languages?: string[];
+    availableIntakes?: string[];
+  };
+  currency: Currency;
+  tuition: CostRange;
+  livingCost: CostRange;
+  insurance: CostRange;
+  otherCosts: CostRange;
+  planningLabels: string;
+  intake: string[];
+  sourceUrl: string;
+  verifiedAt?: string;
+  notes: string;
+}
+
+export interface CountryCostApiResponse {
+  success: boolean;
+  count: number;
+  data: BackendCountryCost[];
+}
+
 export interface ChatMessage {
   id: string;
   sender: "ai" | "user";

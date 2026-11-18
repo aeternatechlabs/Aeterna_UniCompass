@@ -1,15 +1,153 @@
-import React, { useState } from "react";
-import type { Currency, ThemeMode } from "../types";
-import { COUNTRY_COMPARISONS } from "../data/mockData";
+import React, { useEffect, useState } from "react";
+import type {
+  Currency,
+  ThemeMode,
+  CountryCostData,
+  BackendCountryCost,
+} from "../types";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+
+interface CurrencyRatesResponse {
+  success: boolean;
+  base: string;
+  date: string;
+  rates: Record<Currency, number>;
+}
+
+interface CostApiResponse {
+  success: boolean;
+  count: number;
+  data: BackendCountryCost[];
+}
 
 interface CostComparisonProps {
   theme: ThemeMode;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+const convertAmount = (
+  amount: number,
+  sourceCurrency: Currency,
+  targetCurrency: Currency,
+  rates: Record<Currency, number>,
+): number => {
+  const amountInEUR = amount / rates[sourceCurrency];
+
+  return amountInEUR * rates[targetCurrency];
+};
+
+const formatRange = (min: number, max: number, currency: Currency): string => {
+  const formatter = new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  });
+
+  return `${formatter.format(min)} – ${formatter.format(max)} / yr`;
+};
+
+const mapBackendData = (
+  records: BackendCountryCost[],
+  rates: Record<Currency, number>,
+): CountryCostData[] => {
+  return records.map((item) => {
+    const sourceCurrency = item.currency;
+
+    // Include tuition only when it appears in the planning labels.
+    const includesTuition = item.planningLabels
+      .toLowerCase()
+      .includes("tuition");
+
+    const planningMin =
+      item.livingCost.min +
+      item.insurance.min +
+      item.otherCosts.min +
+      (includesTuition ? item.tuition.min : 0);
+
+    const planningMax =
+      item.livingCost.max +
+      item.insurance.max +
+      item.otherCosts.max +
+      (includesTuition ? item.tuition.max : 0);
+
+    return {
+      country: item.country.country,
+      flag: item.country.flag,
+
+      tuitionModel: {
+        INR: formatRange(
+          convertAmount(item.tuition.min, sourceCurrency, "INR", rates),
+          convertAmount(item.tuition.max, sourceCurrency, "INR", rates),
+          "INR",
+        ),
+        EUR: formatRange(
+          convertAmount(item.tuition.min, sourceCurrency, "EUR", rates),
+          convertAmount(item.tuition.max, sourceCurrency, "EUR", rates),
+          "EUR",
+        ),
+        GBP: formatRange(
+          convertAmount(item.tuition.min, sourceCurrency, "GBP", rates),
+          convertAmount(item.tuition.max, sourceCurrency, "GBP", rates),
+          "GBP",
+        ),
+        AUD: formatRange(
+          convertAmount(item.tuition.min, sourceCurrency, "AUD", rates),
+          convertAmount(item.tuition.max, sourceCurrency, "AUD", rates),
+          "AUD",
+        ),
+        USD: formatRange(
+          convertAmount(item.tuition.min, sourceCurrency, "USD", rates),
+          convertAmount(item.tuition.max, sourceCurrency, "USD", rates),
+          "USD",
+        ),
+      },
+
+      language: item.country.languages?.join(" / ") || "Not specified",
+
+      typicalPlanning: {
+        INR: formatRange(
+          convertAmount(planningMin, sourceCurrency, "INR", rates),
+          convertAmount(planningMax, sourceCurrency, "INR", rates),
+          "INR",
+        ),
+        EUR: formatRange(
+          convertAmount(planningMin, sourceCurrency, "EUR", rates),
+          convertAmount(planningMax, sourceCurrency, "EUR", rates),
+          "EUR",
+        ),
+        GBP: formatRange(
+          convertAmount(planningMin, sourceCurrency, "GBP", rates),
+          convertAmount(planningMax, sourceCurrency, "GBP", rates),
+          "GBP",
+        ),
+        AUD: formatRange(
+          convertAmount(planningMin, sourceCurrency, "AUD", rates),
+          convertAmount(planningMax, sourceCurrency, "AUD", rates),
+          "AUD",
+        ),
+        USD: formatRange(
+          convertAmount(planningMin, sourceCurrency, "USD", rates),
+          convertAmount(planningMax, sourceCurrency, "USD", rates),
+          "USD",
+        ),
+      },
+
+      planningLabels: item.planningLabels,
+      intake: item.intake.join(" / "),
+      verificationNotice: item.notes,
+    };
+  });
+};
+
 export const CostComparison: React.FC<CostComparisonProps> = ({ theme }) => {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>("INR");
+  const [countryComparisons, setCountryComparisons] = useState<
+    CountryCostData[]
+  >([]);
+  const [rates, setRates] = useState<Record<Currency, number> | null>(null);
+
   const isLight = theme === "light";
 
   const currencies: { key: Currency; label: string }[] = [
@@ -19,6 +157,77 @@ export const CostComparison: React.FC<CostComparisonProps> = ({ theme }) => {
     { key: "AUD", label: "AUD (A$)" },
     { key: "USD", label: "USD ($)" },
   ];
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchCostData = async () => {
+      try {
+        const [costResponse, ratesResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/costs`, {
+            signal: controller.signal,
+          }),
+          fetch(`${API_BASE_URL}/api/currency/rates`, {
+            signal: controller.signal,
+          }),
+        ]);
+
+        if (!costResponse.ok || !ratesResponse.ok) {
+          throw new Error("Failed to fetch cost or currency data");
+        }
+
+        const costResult: CostApiResponse = await costResponse.json();
+        const ratesResult: CurrencyRatesResponse = await ratesResponse.json();
+
+        if (!costResult.success || !ratesResult.success) {
+          throw new Error("API returned an unsuccessful response");
+        }
+
+        setRates(ratesResult.rates);
+
+        setCountryComparisons(
+          mapBackendData(costResult.data, ratesResult.rates),
+        );
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
+
+        console.error("Cost comparison error:", error);
+      }
+    };
+
+    void fetchCostData();
+
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!rates) return;
+
+    // Recalculate displayed values when the selected currency changes.
+    const fetchAndMap = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/costs`);
+
+        if (!response.ok) {
+          throw new Error("Failed to refresh cost data");
+        }
+
+        const result: CostApiResponse = await response.json();
+
+        if (!result.success) {
+          throw new Error("Cost API returned an unsuccessful response");
+        }
+
+        setCountryComparisons(mapBackendData(result.data, rates));
+      } catch (error) {
+        console.error("Currency selection error:", error);
+      }
+    };
+
+    void fetchAndMap();
+  }, [selectedCurrency, rates]);
 
   return (
     <section
@@ -74,13 +283,13 @@ export const CostComparison: React.FC<CostComparisonProps> = ({ theme }) => {
 
         {/* 3 Country Cost Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {COUNTRY_COMPARISONS.map((item, index) => (
+          {countryComparisons.map((item, index) => (
             <motion.div
               key={item.country}
               initial={{ opacity: 0, y: 25 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.15 }} // Staggered cascade effect
-              whileHover={{ y: -6, scale: 1.01 }} // Smooth lift on hover
+              transition={{ duration: 0.4, delay: index * 0.15 }}
+              whileHover={{ y: -6, scale: 1.01 }}
               className={`rounded-2xl p-6 border shadow-sm hover:shadow-xl  transition-all duration-300 flex flex-col justify-between relative overflow-hidden group ${
                 isLight
                   ? "bg-white border-[#CAE4DB]"

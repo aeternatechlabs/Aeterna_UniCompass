@@ -28,13 +28,7 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
   if (!isOpen) return null;
 
   const isLight = theme === "light";
-  const isGermany = filters.destination.toLowerCase().includes("germany");
-  const isAus = filters.destination.toLowerCase().includes("australia");
-  const destinationDisplay =
-    filters.destination === "Open to all countries"
-      ? "United Kingdom (Primary Recommendation)"
-      : filters.destination;
-
+  const destinationDisplay = filters.destination;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#00303F]/80 backdrop-blur-sm animate-in fade-in duration-200 font-sans">
       <div
@@ -116,24 +110,10 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <span>Academic fit check</span>
             </div>
             <p className="leading-relaxed text-[#7A9D96]">
-              {isGermany ? (
-                <>
-                  Direct eligibility for top German TU9 institutions with
-                  verified APS certificate and min. 70% undergraduate or Abitur
-                  equivalent.
-                </>
-              ) : isAus ? (
-                <>
-                  Meets direct criteria for Australian Go8 faculties with
-                  verified IELTS 6.5–7.0 admission prerequisites.
-                </>
-              ) : (
-                <>
-                  Direct eligibility for leading UK Russell Group & state-health
-                  alliance faculties with verified IELTS 6.5–7.0 admission
-                  prerequisites.
-                </>
-              )}
+              Your selected education level is {filters.education}, and your
+              preferred field is {filters.field}. Admission eligibility will
+              depend on your previous academic qualifications, subject
+              prerequisites, and the requirements of your chosen universities.
             </p>
           </div>
 
@@ -150,23 +130,13 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <span>True cost planner</span>
             </div>
             <p className="leading-relaxed text-[#7A9D96]">
-              {isGermany ? (
-                <>
-                  Tuition: €0 public. Living & blocked account: €11,208/yr.
-                  Student work permit allows up to 140 full days/year.
-                </>
-              ) : isAus ? (
-                <>
-                  Tuition: A$32k–42k/yr. Living & OSHC: A$24,500/yr. Work rights
-                  up to 48 hrs/fortnight during active semester.
-                </>
-              ) : (
-                <>
-                  Tuition: £14k–20k/yr. Living: UKVI maintenance
-                  £1,023–£1,347/month. Part-time work allowance up to 20h/week
-                  during term.
-                </>
-              )}
+              Your selected annual budget is{" "}
+              <span className="font-semibold text-[#DCAE1D]">
+                {filters.budget}
+              </span>
+              . Use this budget to compare tuition fees, accommodation, living
+              expenses, insurance, and other study-related costs in{" "}
+              {filters.destination}.
             </p>
           </div>
 
@@ -183,12 +153,10 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <span>Intake & deadline finder</span>
             </div>
             <p className="leading-relaxed text-[#7A9D96]">
-              Upcoming intakes:{" "}
-              <span className="font-bold text-[#DCAE1D]">
-                Main September 2026
-              </span>
-              . Early priority deadline: March 31, 2026. Standard CAS visa
-              cutoff in July/August.
+              Explore upcoming admission intakes for {filters.field} programmes
+              in {filters.destination}. Application deadlines and available
+              intakes vary by university and programme, so check official
+              university admission dates.
             </p>
           </div>
 
@@ -205,9 +173,10 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <span>Scholarship discovery</span>
             </div>
             <p className="leading-relaxed text-[#7A9D96]">
-              Automatically assessed for international merit waivers (up to
-              £4,000 / €3,500) and state-partnered percentage or healthcare bond
-              grants.
+              Explore scholarship opportunities for {filters.field} programmes
+              in {filters.destination}. Eligibility and funding amounts may
+              depend on your academic qualifications, selected programme,
+              university, and available scholarship schemes.
             </p>
           </div>
 
@@ -224,9 +193,10 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <span>Next best steps</span>
             </div>
             <p className="leading-relaxed text-[#7A9D96]">
-              Download syllabus checklists, request verified credential
-              evaluations, and connect with our advisor for direct application
-              assistance.
+              Based on your {filters.education} qualification and interest in{" "}
+              {filters.field}, compare universities, review admission
+              requirements, check your budget, and prepare the documents
+              required for applications in {filters.destination}.
             </p>
           </div>
         </div>

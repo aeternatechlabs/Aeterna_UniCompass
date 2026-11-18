@@ -1,6 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Sparkles, X, Send, Bot, Loader2 } from "lucide-react";
+import {
+  Sparkles,
+  X,
+  Send,
+  Bot,
+  Loader2,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
 import type { ChatMessage, PathwayFilter, ThemeMode } from "../types";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 interface AiChatWidgetProps {
   isOpen: boolean;
@@ -17,6 +27,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
 }) => {
   const isLight = theme === "light";
 
+  const [isMaximized, setIsMaximized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -54,7 +65,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
     setLoading(true);
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -64,26 +75,31 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const aiMsg: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          sender: "ai",
-          text: data.reply || data.text,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-        setMessages((prev) => [...prev, aiMsg]);
-      } else {
-        throw new Error("Fallback to local intelligence");
+      const data = await response.json();
+
+      if (!response.ok || !data.success || typeof data.reply !== "string") {
+        throw new Error(data.message || "AI chat request failed");
       }
-    } catch {
+
+      const aiMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: "ai",
+        text: data.reply,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (error) {
+      console.error("AI Chat Error:", error);
+
       const fallbackReply = generateLocalAdvisorResponse(
         textToSend,
         currentFilters,
       );
+
       const aiMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: "ai",
@@ -93,6 +109,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
           minute: "2-digit",
         }),
       };
+
       setMessages((prev) => [...prev, aiMsg]);
     } finally {
       setLoading(false);
@@ -149,7 +166,11 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
       {/* Chat Window Drawer / Card */}
       {isOpen && (
         <div
-          className={`w-[90vw] sm:w-[400px] h-[520px] rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200 ${
+          className={`${
+            isMaximized
+              ? "fixed inset-0 z-[60] w-screen h-[100dvh] rounded-none"
+              : "w-[90vw] sm:w-[400px] h-[520px] rounded-2xl"
+          } shadow-2xl border flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200 ${
             isLight
               ? "bg-white border-[#CAE4DB]"
               : "bg-[#002632] border-[#7A9D96]/40"
@@ -173,54 +194,79 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
                 </div>
               </div>
             </div>
-            <button
-              onClick={onToggle}
-              className="p-1 text-[#7A9D96] hover:text-white rounded-md transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Maximize / Restore Button */}
+              <button
+                type="button"
+                onClick={() => setIsMaximized((prev) => !prev)}
+                title={isMaximized ? "Restore window" : "Maximize window"}
+                className="p-1 text-[#7A9D96] hover:text-white rounded-md transition-colors cursor-pointer"
+              >
+                {isMaximized ? (
+                  <Minimize2 className="w-5 h-5" />
+                ) : (
+                  <Maximize2 className="w-5 h-5" />
+                )}
+              </button>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={onToggle}
+                className="p-1 text-[#7A9D96] hover:text-white rounded-md transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Messages Area */}
           <div
-            className={`flex-1 p-4 overflow-y-auto space-y-3.5 text-xs ${
+            className={`flex-1 min-h-0 w-full overflow-y-auto ${
               isLight ? "bg-[#CAE4DB]/15" : "bg-[#001f29]"
             }`}
           >
-            {messages.map((msg) => {
-              const isAi = msg.sender === "ai";
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex items-start gap-2 ${isAi ? "justify-start" : "justify-end"}`}
-                >
-                  {isAi && (
-                    <div className="w-6 h-6 rounded-full bg-[#00303F] text-[#DCAE1D] border border-[#DCAE1D]/40 flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-bold">
-                      A
-                    </div>
-                  )}
+            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-5 space-y-6">
+              {messages.map((msg) => {
+                const isAi = msg.sender === "ai";
+
+                return (
                   <div
-                    className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 shadow-sm leading-relaxed whitespace-pre-line ${
-                      isAi
-                        ? isLight
-                          ? "bg-white text-[#00303F] border border-[#CAE4DB]"
-                          : "bg-[#002632] text-[#CAE4DB] border border-[#7A9D96]/30"
-                        : "bg-[#00303F] text-[#CAE4DB] border border-[#DCAE1D]/50"
+                    key={msg.id}
+                    className={`flex items-start gap-3 w-full ${
+                      isAi ? "justify-start" : "justify-end"
                     }`}
                   >
-                    {msg.text}
-                  </div>
-                </div>
-              );
-            })}
+                    {isAi && (
+                      <div className="w-8 h-8 rounded-full bg-[#00303F] text-[#DCAE1D] border border-[#DCAE1D]/40 flex items-center justify-center shrink-0 mt-1 text-xs font-bold">
+                        A
+                      </div>
+                    )}
 
-            {loading && (
-              <div className="flex items-center gap-2 text-[#7A9D96] text-xs py-2">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#DCAE1D]" />
-                <span>Consulting verified admissions criteria...</span>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+                    <div
+                      className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 shadow-sm leading-relaxed whitespace-pre-line text-sm ${
+                        isAi
+                          ? isLight
+                            ? "bg-white text-[#00303F] border border-[#CAE4DB] rounded-tl-sm"
+                            : "bg-[#002632] text-[#CAE4DB] border border-[#7A9D96]/30 rounded-tl-sm"
+                          : "bg-[#00303F] text-[#CAE4DB] border border-[#DCAE1D]/50 rounded-tr-sm"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {loading && (
+                <div className="flex items-center gap-3 text-[#7A9D96] text-xs py-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-[#DCAE1D]" />
+                  <span>Consulting verified admissions criteria...</span>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
           </div>
 
           {/* Quick Suggestion Chips */}
@@ -284,7 +330,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
               e.preventDefault();
               handleSendMessage();
             }}
-            className={`p-3 border-t flex items-center gap-2 ${
+            className={`p-3 border-t flex items-center gap-2 shrink-0 ${
               isLight
                 ? "bg-white border-[#CAE4DB]"
                 : "bg-[#002632] border-[#7A9D96]/20"
@@ -295,7 +341,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Ask about universities, admission criteria or costs..."
-              className={`flex-1 rounded-lg px-3 py-2 text-xs focus:outline-none transition-all ${
+              className={`flex-1 min-w-0 max-w-4xl mx-auto rounded-lg px-3 py-2.5 text-sm focus:outline-none transition-all ${
                 isLight
                   ? "bg-[#CAE4DB]/20 border border-[#7A9D96]/40 text-[#00303F] focus:border-[#DCAE1D]"
                   : "bg-[#001f29] border border-[#7A9D96]/40 text-[#CAE4DB] focus:border-[#DCAE1D]"

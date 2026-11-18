@@ -1,5 +1,4 @@
 import React from "react";
-import { Compass } from "lucide-react";
 import type { ThemeMode } from "../types";
 
 interface FooterProps {
@@ -10,7 +9,6 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({
-  theme,
   onOpenSmartMatch,
   onScrollToSection,
   onOpenGlobalPath,
