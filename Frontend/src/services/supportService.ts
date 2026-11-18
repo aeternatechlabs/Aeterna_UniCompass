@@ -35,8 +35,17 @@ async function sendRequest<T>(endpoint: string, data: T) {
   return result;
 }
 
+// Submit counselling request
 export const submitCounsellingRequest = (data: CounsellingData) =>
-  sendRequest("/api/support/counselling", data);
+  sendRequest("/api/assistance/counselling", {
+    fullName: data.fullName,
+    email: data.email,
+    phone: data.phone,
+    country: data.preferredDestination,
+    course: data.courseInterest,
+    message: data.message,
+  });
 
+// Submit student support request
 export const submitSupportRequest = (data: SupportData) =>
-  sendRequest("/api/support/ticket", data);
+  sendRequest("/api/assistance/support", data);

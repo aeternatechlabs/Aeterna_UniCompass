@@ -9,6 +9,7 @@ import costRouter from "./routes/cost.routes.js";
 import pathwayRouter from "./routes/pathway.routes.js";
 import aiRouter from "./routes/ai.routes.js";
 import currencyRouter from "./routes/currency.routes.js";
+import assistanceRoutes from "./routes/assistance.routes.js";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
+app.use("/api/assistance", assistanceRoutes);
 
 app.get("/", (_req, res) => {
   res.status(200).send("Aeterna UniCompass API is running");
