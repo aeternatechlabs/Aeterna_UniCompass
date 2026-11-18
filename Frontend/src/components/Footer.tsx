@@ -6,12 +6,14 @@ interface FooterProps {
   onOpenSmartMatch: () => void;
   onScrollToSection: (sectionId: string) => void;
   onOpenGlobalPath: () => void;
+  onOpenAssistance: (modalType: "counselling" | "advisor" | "support") => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onOpenSmartMatch,
   onScrollToSection,
   onOpenGlobalPath,
+  onOpenAssistance,
 }) => {
   return (
     <footer className="w-full bg-[#001f29] text-[#CAE4DB] pt-16 pb-12 border-t border-[#7A9D96]/30 font-sans">
@@ -120,34 +122,37 @@ export const Footer: React.FC<FooterProps> = ({
             </ul>
           </div>
 
-          {/* Col 4: Connect */}
+          {/* Col 4: Student Assistance */}
           <div className="space-y-3">
             <h4 className="text-white font-bold text-xs uppercase tracking-wider">
-              Connect
+              Student Assistance
             </h4>
+
             <ul className="space-y-2 text-[#7A9D96]">
               <li>
                 <button
-                  onClick={onOpenGlobalPath}
-                  className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
+                  onClick={() => onOpenAssistance("counselling")}
+                  className="hover:text-[#DCAE1D] transition-colors"
                 >
-                  Request counselling
+                  Request Counselling
                 </button>
               </li>
+
               <li>
                 <button
-                  onClick={onOpenSmartMatch}
-                  className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
+                  onClick={() => onOpenAssistance("advisor")}
+                  className="hover:text-[#DCAE1D] transition-colors"
                 >
-                  Speak with an advisor
+                  Speak with an Advisor
                 </button>
               </li>
+
               <li>
                 <button
-                  onClick={onOpenGlobalPath}
-                  className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
+                  onClick={() => onOpenAssistance("support")}
+                  className="hover:text-[#DCAE1D] transition-colors"
                 >
-                  Student support
+                  Student Support
                 </button>
               </li>
             </ul>

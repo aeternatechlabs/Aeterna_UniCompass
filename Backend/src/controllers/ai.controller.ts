@@ -2,11 +2,12 @@ import type { Request, Response } from "express";
 import {
   evaluateStudentProfile,
   generateChatReply,
+  generateGlobalPathPreview,
   type ProfileEvaluationInput,
   type ChatHistoryItem,
   type StudentChatContext,
+  type GlobalPathInput,
 } from "../services/ai.service.js";
-
 
 export const evaluateProfile = async (req: Request, res: Response) => {
   try {
@@ -81,6 +82,48 @@ export const handleAiChat = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "AI chat service failed",
+      error: message,
+    });
+  }
+};
+
+export const handleGlobalPathPreview = async (req: Request, res: Response) => {
+  try {
+    const body = req.body as Partial<GlobalPathInput>;
+
+    const { education, field, budget, destination } = body;
+
+    if (
+      !education?.trim() ||
+      !field?.trim() ||
+      !budget?.trim() ||
+      !destination?.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All four student profile filters are required",
+      });
+    }
+
+    const data = await generateGlobalPathPreview({
+      education: education.trim(),
+      field: field.trim(),
+      budget: budget.trim(),
+      destination: destination.trim(),
+    });
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("handleGlobalPathPreview:", error);
+
+    const message = error instanceof Error ? error.message : "Unknown error";
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to generate GlobalPath preview",
       error: message,
     });
   }

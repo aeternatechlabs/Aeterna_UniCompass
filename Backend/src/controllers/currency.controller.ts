@@ -19,7 +19,9 @@ export const getCurrencyRates = async (_req: Request, res: Response) => {
 
     const data: FrankfurterRate[] = await response.json();
 
-    if (!Array.isArray(data) || data.length === 0) {
+    const firstRate = data[0];
+
+    if (!firstRate) {
       throw new Error("No exchange rates received");
     }
 
@@ -34,7 +36,7 @@ export const getCurrencyRates = async (_req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       base: "EUR",
-      date: data[0].date,
+      date: firstRate.date,
       rates,
     });
   } catch (error) {

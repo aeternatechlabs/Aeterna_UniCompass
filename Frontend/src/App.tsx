@@ -16,8 +16,14 @@ import { GlobalPathModal } from "./components/GlobalPathModal";
 import { SmartMatchModal } from "./components/SmartMatchModel";
 import { AiChatWidget } from "./components/AiChatWidget";
 
+import RequestCounselling from "./pages/RequestCounselling";
+import SpeakWithAdvisor from "./pages/SpeakWithAdvisor";
+import StudentSupport from "./pages/StudentSupport";
+type AssistanceModalType = "counselling" | "advisor" | "support" | null;
+
 const App = () => {
   const [theme, setTheme] = useState<ThemeMode>("light");
+
   const [filters, setFilters] = useState<PathwayFilter>({
     education: "Graduate",
     field: "Healthcare / Nursing",
@@ -28,6 +34,10 @@ const App = () => {
   const [isGlobalPathModalOpen, setIsGlobalPathModalOpen] = useState(false);
   const [isSmartMatchModalOpen, setIsSmartMatchModalOpen] = useState(false);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+
+  // Controls Student Assistance modals
+  const [activeAssistanceModal, setActiveAssistanceModal] =
+    useState<AssistanceModalType>(null);
 
   useEffect(() => {
     if (theme === "dark") {
@@ -42,11 +52,14 @@ const App = () => {
   const handleToggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
+
   const handleFilterChange = (key: keyof PathwayFilter, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
+
   const handleScrollToSection = (sectionId: string) => {
     const el = document.getElementById(sectionId);
+
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -55,12 +68,15 @@ const App = () => {
   const handleDiscussWithAeterna = () => {
     setIsAiChatOpen(true);
   };
+
   const handleSelectDestination = (countryName: string) => {
     setFilters((prev) => ({ ...prev, destination: countryName }));
     setIsGlobalPathModalOpen(true);
   };
+
   const handleSelectField = (fieldTitle: string) => {
     let mappedField = fieldTitle;
+
     if (fieldTitle.includes("Medicine")) mappedField = "Medicine & MBBS";
     else if (fieldTitle.includes("Engineering")) mappedField = "Engineering";
     else if (fieldTitle.includes("Computer"))
@@ -93,19 +109,16 @@ const App = () => {
         onOpenGlobalPath={() => setIsGlobalPathModalOpen(true)}
       />
 
-      {/* main Content */}
+      {/* Main Content */}
       <main>
-        {/* Hero Section */}
         <Hero
           theme={theme}
-          onDiscoverClick={() => setIsGlobalPathModalOpen(true)}
+          onDiscoverClick={() => handleScrollToSection("pathways")}
           onSeeHowItWorksClick={() => handleScrollToSection("foursteps")}
         />
 
-        {/* Infinite scrolling ticker */}
         <TickerMarquee />
 
-        {/* Floating Pathway Finder Card */}
         <PathwayFinder
           theme={theme}
           filter={filters}
@@ -114,36 +127,50 @@ const App = () => {
           onDetailedClick={() => setIsSmartMatchModalOpen(true)}
         />
 
-        {/* Section 1: Explore Destinations */}
         <ExploreDestinations
           theme={theme}
           onSelectDestination={handleSelectDestination}
         />
 
-        {/* Section 2: Popular Pathways */}
         <PopularPathways theme={theme} onSelectField={handleSelectField} />
 
-        {/* Section 3: Smart Match Feature */}
         <SmartMatchSection
           theme={theme}
           onStartSmartMatch={() => setIsSmartMatchModalOpen(true)}
         />
 
-        {/* Section 4: Cost Comparison */}
         <CostComparison theme={theme} />
 
-        {/* Section 5: Short Programmes */}
         <ShortProgrammes
           theme={theme}
           onLearnMore={handleLearnMoreShortProgrammes}
         />
 
-        {/* Section 6: Four Steps */}
         <FourSteps theme={theme} />
 
-        {/* Section 7: Not sure where to begin? CTA */}
         <CtaBanner theme={theme} onOpenAiGuide={() => setIsAiChatOpen(true)} />
       </main>
+
+      {activeAssistanceModal === "counselling" && (
+        <RequestCounselling
+          theme={theme}
+          onClose={() => setActiveAssistanceModal(null)}
+        />
+      )}
+
+      {activeAssistanceModal === "advisor" && (
+        <SpeakWithAdvisor
+          theme={theme}
+          onClose={() => setActiveAssistanceModal(null)}
+        />
+      )}
+
+      {activeAssistanceModal === "support" && (
+        <StudentSupport
+          theme={theme}
+          onClose={() => setActiveAssistanceModal(null)}
+        />
+      )}
 
       {/* Footer */}
       <Footer
@@ -151,9 +178,10 @@ const App = () => {
         onOpenSmartMatch={() => setIsSmartMatchModalOpen(true)}
         onScrollToSection={handleScrollToSection}
         onOpenGlobalPath={() => setIsGlobalPathModalOpen(true)}
+        onOpenAssistance={(modalType) => setActiveAssistanceModal(modalType)}
       />
 
-      {/* Modals & Popups */}
+      {/* Existing Modals */}
       <GlobalPathModal
         isOpen={isGlobalPathModalOpen}
         onClose={() => setIsGlobalPathModalOpen(false)}
@@ -169,7 +197,7 @@ const App = () => {
         onDiscussWithAeterna={handleDiscussWithAeterna}
       />
 
-      {/* Floating Ask Global AI Assistant */}
+      {/* Floating AI Assistant */}
       <AiChatWidget
         isOpen={isAiChatOpen}
         onToggle={() => setIsAiChatOpen(!isAiChatOpen)}

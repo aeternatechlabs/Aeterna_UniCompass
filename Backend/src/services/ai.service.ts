@@ -412,3 +412,336 @@ IMPORTANT:
     ? cleanPlainText(reply)
     : "Sorry, I could not generate a response.";
 };
+
+// GlobalPath Preview Types
+
+export interface GlobalPathInput {
+  education: string;
+  field: string;
+  budget: string;
+  destination: string;
+}
+
+export interface GlobalPathPreview {
+  searchProfile: string;
+  academicFit: string;
+  trueCostPlanner: string;
+  intakeDeadline: string;
+  scholarshipDiscovery: string;
+  nextSteps: string;
+}
+
+const destinationCurrencies: Record<string, string> = {
+  Germany: "EUR",
+  France: "EUR",
+  Italy: "EUR",
+  Spain: "EUR",
+  Netherlands: "EUR",
+  Ireland: "EUR",
+  Portugal: "EUR",
+  Austria: "EUR",
+  Finland: "EUR",
+  Belgium: "EUR",
+
+  "United Kingdom": "GBP",
+  UK: "GBP",
+
+  Australia: "AUD",
+  Canada: "CAD",
+  "United States": "USD",
+  USA: "USD",
+  Japan: "JPY",
+  "New Zealand": "NZD",
+  Switzerland: "CHF",
+  Sweden: "SEK",
+  Denmark: "DKK",
+  Norway: "NOK",
+  Poland: "PLN",
+  Singapore: "SGD",
+  UAE: "AED",
+};
+
+// Generate GlobalPath Preview
+
+interface GlobalPathCostBreakdown {
+  tuition: number | null;
+  accommodation: number | null;
+  livingExpenses: number | null;
+  healthInsurance: number | null;
+  otherExpenses: number | null;
+}
+
+interface GlobalPathAiResponse {
+  searchProfile: string;
+  academicFit: string;
+  intakeDeadline: string;
+  scholarshipDiscovery: string;
+  nextSteps: string;
+  costBreakdown: GlobalPathCostBreakdown;
+}
+
+interface FrankfurterRate {
+  date: string;
+  base: string;
+  quote: string;
+  rate: number;
+}
+
+const getInrExchangeRate = async (
+  currency: string,
+): Promise<{ rate: number; date: string }> => {
+  if (currency === "INR") {
+    return { rate: 1, date: "Not applicable" };
+  }
+
+  const response = await fetch(
+    `https://api.frankfurter.dev/v2/rates?base=${encodeURIComponent(currency)}&quotes=INR`,
+  );
+
+  if (!response.ok) {
+    throw new Error(`Frankfurter API error: ${response.status}`);
+  }
+
+  const data: FrankfurterRate[] = await response.json();
+
+  const inrRate = data.find((item) => item.quote === "INR");
+
+  if (!inrRate || !Number.isFinite(inrRate.rate) || inrRate.rate <= 0) {
+    throw new Error(`INR exchange rate unavailable for ${currency}`);
+  }
+
+  return {
+    rate: inrRate.rate,
+    date: inrRate.date,
+  };
+};
+
+const formatINR = (amount: number): string => {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+export const generateGlobalPathPreview = async (
+  filters: GlobalPathInput,
+): Promise<GlobalPathPreview> => {
+  const destinationKey = filters.destination.trim().toLowerCase();
+
+  const currencyEntry = Object.entries(destinationCurrencies).find(
+    ([country]) => country.toLowerCase() === destinationKey,
+  );
+
+  if (!currencyEntry) {
+    throw new Error(
+      `Currency mapping not available for ${filters.destination}`,
+    );
+  }
+
+  const destinationCurrency = currencyEntry[1];
+
+  const prompt = `
+You are Aeterna UniCompass, an international education advisor.
+
+STUDENT PROFILE:
+Education: ${filters.education}
+Field: ${filters.field}
+Annual Budget: ${filters.budget}
+Destination: ${filters.destination}
+
+Generate personalized guidance for all six GlobalPath cards.
+
+COST BREAKDOWN:
+
+Generate approximate annual planning estimates in ${destinationCurrency}.
+
+Provide separate numeric amounts for:
+- tuition
+- accommodation
+- livingExpenses
+- healthInsurance
+- otherExpenses
+
+IMPORTANT COST RULES:
+- All five amounts must be numbers or null.
+- Use the destination's currency: ${destinationCurrency}.
+- Do not return INR amounts.
+- Do not invent exact university fees.
+- These are broad annual planning estimates, not verified university quotations.
+- If a cost cannot be reliably estimated, return null.
+- Never return 0 just because information is unavailable.
+- Return 0 only when the expense is genuinely zero.
+- Do not use negative amounts.
+- Do not include currency symbols in numeric values.
+
+OTHER CARDS:
+
+1. searchProfile:
+Summarize the student's selected profile accurately.
+
+2. academicFit:
+Explain relevant academic qualifications and prerequisites.
+Do not assume grades or eligibility.
+
+3. intakeDeadline:
+Explain how to identify relevant university intakes and deadlines.
+Do not invent current dates.
+
+4. scholarshipDiscovery:
+Explain relevant scholarship opportunities and eligibility factors.
+Do not invent scholarship amounts or deadlines.
+
+5. nextSteps:
+Provide practical next steps based on the student's profile.
+
+ACCURACY RULES:
+- Respect all four selected filters.
+- Never change the selected destination.
+- Do not invent university names, fees, deadlines, or scholarships.
+- Use simple, student-friendly language.
+- Keep each card concise.
+
+Return ONLY valid JSON with exactly these fields:
+
+{
+  "searchProfile": "",
+  "academicFit": "",
+  "costBreakdown": {
+    "tuition": null,
+    "accommodation": null,
+    "livingExpenses": null,
+    "healthInsurance": null,
+    "otherExpenses": null
+  },
+  "intakeDeadline": "",
+  "scholarshipDiscovery": "",
+  "nextSteps": ""
+}
+`;
+
+  const completion = await client().chat.completions.create({
+    model: MODEL,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are Aeterna UniCompass's study-abroad guidance assistant. Follow the requested JSON schema and never present estimates as verified facts.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    temperature: 0.3,
+  });
+
+  const response = completion.choices[0]?.message?.content;
+
+  if (!response || typeof response !== "string") {
+    throw new Error("Groq returned an empty GlobalPath preview");
+  }
+
+  const cleaned = response
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+
+  if (start < 0 || end < start) {
+    throw new Error("Groq returned invalid GlobalPath JSON");
+  }
+
+  const aiData = JSON.parse(
+    cleaned.slice(start, end + 1),
+  ) as GlobalPathAiResponse;
+
+  const costs = aiData.costBreakdown;
+
+  if (!costs || typeof costs !== "object") {
+    throw new Error("Groq returned an invalid cost breakdown");
+  }
+
+  const costValues = [
+    costs?.tuition,
+    costs?.accommodation,
+    costs?.livingExpenses,
+    costs?.healthInsurance,
+    costs?.otherExpenses,
+  ];
+
+  if (
+    costValues.some(
+      (amount) =>
+        amount !== null &&
+        (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0),
+    )
+  ) {
+    throw new Error("Groq returned invalid cost estimates");
+  }
+
+  // Fetch the actual reference exchange rate.
+  const exchange = await getInrExchangeRate(destinationCurrency);
+
+
+  // Convert each expense into INR.
+  const convertToINR = (amount: number | null): number | null => {
+    if (amount === null) return null;
+
+    return Math.round(amount * exchange.rate);
+  };
+
+  const formatCost = (amount: number | null): string => {
+    if (amount === null) return "Not available";
+
+    return formatINR(amount);
+  };
+
+  const tuition = convertToINR(costs.tuition);
+  const accommodation = convertToINR(costs.accommodation);
+  const livingExpenses = convertToINR(costs.livingExpenses);
+  const healthInsurance = convertToINR(costs.healthInsurance);
+  const otherExpenses = convertToINR(costs.otherExpenses);
+
+  const allCostsAvailable = [
+    tuition,
+    accommodation,
+    livingExpenses,
+    healthInsurance,
+    otherExpenses,
+  ].every((amount) => amount !== null);
+
+  const total = allCostsAvailable
+    ? [
+        tuition,
+        accommodation,
+        livingExpenses,
+        healthInsurance,
+        otherExpenses,
+      ].reduce<number>((sum, amount) => sum + (amount ?? 0), 0)
+    : null;
+
+  const trueCostPlanner = [
+    `Tuition: ${formatCost(tuition)}`,
+    `Accommodation: ${formatCost(accommodation)}`,
+    `Living expenses: ${formatCost(livingExpenses)}`,
+    `Health insurance: ${formatCost(healthInsurance)}`,
+    `Other expenses: ${formatCost(otherExpenses)}`,
+    `Total estimated cost: ${formatCost(total)}`,
+    `Original currency: ${destinationCurrency}`,
+    `Exchange rate: 1 ${destinationCurrency} = ${exchange.rate} INR`,
+    `Exchange rate date: ${exchange.date}`,
+    "All available expenses are approximate planning estimates, not verified university fees.",
+  ].join(" | ");
+
+  return {
+    searchProfile: aiData.searchProfile,
+    academicFit: aiData.academicFit,
+    trueCostPlanner,
+    intakeDeadline: aiData.intakeDeadline,
+    scholarshipDiscovery: aiData.scholarshipDiscovery,
+    nextSteps: aiData.nextSteps,
+  };
+};

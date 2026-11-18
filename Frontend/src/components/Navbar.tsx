@@ -15,7 +15,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleTheme,
   onOpenSmartMatch,
   onScrollToSection,
-  onOpenGlobalPath,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -154,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Find My Course Button in Honey (#DCAE1D) with Cerulean (#00303F) text */}
             <button
-              onClick={onOpenGlobalPath}
+              onClick={() => onScrollToSection("pathways")}
               className="bg-[#DCAE1D] hover:opacity-90 active:scale-95 text-[#00303F] font-bold px-5 py-2 rounded-full text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <span>Find My Course</span>
@@ -247,7 +246,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="pt-2">
               <button
                 onClick={() => {
-                  onOpenGlobalPath();
+                  onScrollToSection("pathways");
                   setMobileMenuOpen(false);
                 }}
                 className="w-full bg-[#DCAE1D] text-[#00303F] font-bold py-2.5 rounded-full text-center"

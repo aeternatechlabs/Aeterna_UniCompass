@@ -31,6 +31,7 @@ export const PathwayFinder: React.FC<PathwayFinderProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
       className="relative z-30 max-w-6xl mx-auto px-4 -mt-12 sm:-mt-14 font-sans"
+      id="pathways"
     >
       <div
         className={`rounded-2xl p-5 sm:p-7 shadow-xl transition-colors duration-200 ${

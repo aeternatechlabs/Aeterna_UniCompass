@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   X,
   ArrowRight,
@@ -9,6 +9,21 @@ import {
   Compass,
 } from "lucide-react";
 import type { PathwayFilter, ThemeMode } from "../types";
+
+interface GlobalPathPreview {
+  searchProfile: string;
+  academicFit: string;
+  trueCostPlanner: string;
+  intakeDeadline: string;
+  scholarshipDiscovery: string;
+  nextSteps: string;
+}
+
+interface GlobalPathApiResponse {
+  success: boolean;
+  data?: GlobalPathPreview;
+  message?: string;
+}
 
 interface GlobalPathModalProps {
   isOpen: boolean;
@@ -25,10 +40,86 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
   filters,
   onDiscussWithAeterna,
 }) => {
+  const [preview, setPreview] = useState<GlobalPathPreview | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const controller = new AbortController();
+
+    const fetchGlobalPathPreview = async () => {
+      setLoading(true);
+      setError("");
+      setPreview(null);
+
+      try {
+        const API_BASE_URL =
+          import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+        const response = await fetch(`${API_BASE_URL}/api/globalpath/preview`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(filters),
+          signal: controller.signal,
+        });
+
+        const result = (await response.json()) as GlobalPathApiResponse;
+
+        if (!response.ok || !result.success || !result.data) {
+          throw new Error(
+            result.message || "Failed to generate GlobalPath preview",
+          );
+        }
+
+        setPreview(result.data);
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong while generating your preview.",
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void fetchGlobalPathPreview();
+
+    return () => controller.abort();
+  }, [
+    isOpen,
+    filters.education,
+    filters.field,
+    filters.budget,
+    filters.destination,
+  ]);
+
   if (!isOpen) return null;
 
   const isLight = theme === "light";
   const destinationDisplay = filters.destination;
+
+  const formatNumberedPoints = (value: string) => {
+    return value.replace(/(\s+)(\d+\.)\s+/g, "\n$2 ");
+  };
+
+  const cardText = (value: string | undefined, fallback: string) => {
+    if (loading) return "Generating personalized guidance...";
+    if (error) return "AI guidance is currently unavailable.";
+
+    return formatNumberedPoints(value || fallback);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#00303F]/80 backdrop-blur-sm animate-in fade-in duration-200 font-sans">
       <div
@@ -59,9 +150,14 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
           </div>
           <p className="text-xs text-[#7A9D96] leading-relaxed">
             Based on your choices, we found matching opportunities: academic
-            suitability, tuition pathways, verified cost estimates, and
-            admission benchmarks across destination universities.
+            suitability, tuition pathways, cost planning guidance, and admission
+            benchmarks across destination universities.
           </p>
+          {error && (
+            <p className="text-xs text-red-500 mb-3" role="alert">
+              {error} Close and reopen the preview to try again.
+            </p>
+          )}
         </div>
 
         {/* 6 Grid Cards */}
@@ -83,17 +179,11 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
             >
               {filters.education} · {filters.field}
             </p>
-            <p className="text-[#7A9D96] mt-1">
-              Budget:{" "}
-              <span className="font-semibold text-[#DCAE1D]">
-                {filters.budget}
-              </span>{" "}
-              · Destination:{" "}
-              <span
-                className={`font-semibold ${isLight ? "text-[#00303F]" : "text-[#CAE4DB]"}`}
-              >
-                {destinationDisplay}
-              </span>
+            <p className="text-[#7A9D96] mt-1 whitespace-pre-line">
+              {cardText(
+                preview?.searchProfile,
+                `Budget: ${filters.budget} · Destination: ${destinationDisplay}`,
+              )}
             </p>
           </div>
 
@@ -109,11 +199,11 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <ShieldCheck className="w-4 h-4" />
               <span>Academic fit check</span>
             </div>
-            <p className="leading-relaxed text-[#7A9D96]">
-              Your selected education level is {filters.education}, and your
-              preferred field is {filters.field}. Admission eligibility will
-              depend on your previous academic qualifications, subject
-              prerequisites, and the requirements of your chosen universities.
+            <p className="leading-relaxed text-[#7A9D96] whitespace-pre-line">
+              {cardText(
+                preview?.academicFit,
+                `Your selected education level is ${filters.education}, and your preferred field is ${filters.field}. Admission requirements depend on your qualifications and chosen university.`,
+              )}
             </p>
           </div>
 
@@ -129,14 +219,11 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <Wallet className="w-4 h-4" />
               <span>True cost planner</span>
             </div>
-            <p className="leading-relaxed text-[#7A9D96]">
-              Your selected annual budget is{" "}
-              <span className="font-semibold text-[#DCAE1D]">
-                {filters.budget}
-              </span>
-              . Use this budget to compare tuition fees, accommodation, living
-              expenses, insurance, and other study-related costs in{" "}
-              {filters.destination}.
+            <p className="leading-relaxed text-[#7A9D96] whitespace-pre-line">
+              {cardText(
+                preview?.trueCostPlanner,
+                `Your selected annual budget is ${filters.budget}. Compare tuition, accommodation, living expenses, insurance, and other costs in ${filters.destination}.`,
+              )}
             </p>
           </div>
 
@@ -152,11 +239,11 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <Clock className="w-4 h-4" />
               <span>Intake & deadline finder</span>
             </div>
-            <p className="leading-relaxed text-[#7A9D96]">
-              Explore upcoming admission intakes for {filters.field} programmes
-              in {filters.destination}. Application deadlines and available
-              intakes vary by university and programme, so check official
-              university admission dates.
+            <p className="leading-relaxed text-[#7A9D96] whitespace-pre-line">
+              {cardText(
+                preview?.intakeDeadline,
+                `Explore upcoming admission intakes for ${filters.field} programmes in ${filters.destination}. Verify deadlines with individual universities.`,
+              )}
             </p>
           </div>
 
@@ -172,11 +259,11 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <Award className="w-4 h-4" />
               <span>Scholarship discovery</span>
             </div>
-            <p className="leading-relaxed text-[#7A9D96]">
-              Explore scholarship opportunities for {filters.field} programmes
-              in {filters.destination}. Eligibility and funding amounts may
-              depend on your academic qualifications, selected programme,
-              university, and available scholarship schemes.
+            <p className="leading-relaxed text-[#7A9D96] whitespace-pre-line">
+              {cardText(
+                preview?.scholarshipDiscovery,
+                `Explore scholarship opportunities for ${filters.field} programmes in ${filters.destination}. Verify eligibility and funding with official providers.`,
+              )}
             </p>
           </div>
 
@@ -192,11 +279,11 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
               <Compass className="w-4 h-4" />
               <span>Next best steps</span>
             </div>
-            <p className="leading-relaxed text-[#7A9D96]">
-              Based on your {filters.education} qualification and interest in{" "}
-              {filters.field}, compare universities, review admission
-              requirements, check your budget, and prepare the documents
-              required for applications in {filters.destination}.
+            <p className="leading-relaxed text-[#7A9D96] whitespace-pre-line">
+              {cardText(
+                preview?.nextSteps,
+                `Compare universities, review admission requirements, check your budget, and prepare application documents for ${filters.destination}.`,
+              )}
             </p>
           </div>
         </div>
