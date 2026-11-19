@@ -23,7 +23,7 @@ const faqs = [
   {
     question: "How can I find the right university?",
     answer:
-      "Explore countries and courses on UniCompass or request personalized counselling.",
+      "Explore countries and courses on Aeterna or request personalized counselling.",
   },
   {
     question: "Can I compare study costs?",

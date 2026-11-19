@@ -129,7 +129,7 @@ const createEmailTemplate = (
           <tr>
             <td style="background:#f8fafc;padding:22px;text-align:center;">
               <p style="color:#64748b;font-size:12px;margin:0;">
-                © 2026 UniCompass. All rights reserved.
+                © 2026 Aeterna. All rights reserved.
               </p>
             </td>
           </tr>
@@ -174,15 +174,15 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
     "",
     "Your meeting is not confirmed yet. Our adviser will review your request and contact you.",
     "",
-    "Thank you for choosing UniCompass.",
+    "Thank you for choosing Aeterna.",
   ].join("\n");
 
   const results = await Promise.all([
     transporter.sendMail({
-      from: { name: "UniCompass", address: adminEmail },
+      from: { name: "Aeterna", address: adminEmail },
       to: notificationEmail,
       replyTo: data.email,
-      subject: "New Advisor Meeting Request - UniCompass",
+      subject: "New Advisor Meeting Request - Aeterna",
       text: adminMessage,
       html: createEmailTemplate(
         "New Advisor Meeting Request",
@@ -193,9 +193,9 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
     }),
 
     transporter.sendMail({
-      from: { name: "UniCompass", address: adminEmail },
+      from: { name: "Aeterna", address: adminEmail },
       to: data.email,
-      subject: "Your Meeting Request Has Been Received - UniCompass",
+      subject: "Your Meeting Request Has Been Received - Aeterna",
       text: studentMessage,
       html: createEmailTemplate(
         "Your Request Has Been Received!",

@@ -87,7 +87,7 @@ const createEmailTemplate = (data: AssistanceEmailData) => {
               <p style="color:#64748b;font-size:14px;line-height:1.7;">
                 A student has submitted a new
                 ${isCounselling ? "counselling" : "student support"}
-                request through UniCompass.
+                request through Aeterna.
               </p>
 
               <h3 style="color:#073b4c;margin-top:28px;">
@@ -125,7 +125,7 @@ const createEmailTemplate = (data: AssistanceEmailData) => {
           <tr>
             <td style="background:#f8fafc;padding:22px;text-align:center;">
               <p style="color:#64748b;font-size:12px;margin:0;">
-                © 2026 UniCompass. All rights reserved.
+                © 2026 Aeterna. All rights reserved.
               </p>
               <p style="color:#94a3b8;font-size:11px;margin-bottom:0;">
                 Helping students find their global education pathway.
@@ -172,12 +172,12 @@ export const sendAssistanceEmail = async (data: AssistanceEmailData) => {
 
   const result = await transporter.sendMail({
     from: {
-      name: "UniCompass",
+      name: "Aeterna",
       address: adminEmail,
     },
     to: notificationEmail,
     replyTo: data.email,
-    subject: `New ${data.type} Request - UniCompass`,
+    subject: `New ${data.type} Request - Aeterna`,
     text: details,
     html: createEmailTemplate(data),
   });

@@ -162,7 +162,7 @@ export const Footer: React.FC<FooterProps> = ({
         {/* Bottom Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#7A9D96]">
           <p>
-            © 2026 Aeterna / Global Compass. All rights reserved. Designed with
+            © 2026 Aeterna / Global Ai. All rights reserved. Designed with
             verified institutional datasets.
           </p>
           <div className="flex items-center gap-4 text-[#CAE4DB]">
