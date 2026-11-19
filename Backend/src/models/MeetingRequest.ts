@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 export type MeetingStatus =
   | "Pending"
@@ -7,7 +7,7 @@ export type MeetingStatus =
   | "Cancelled"
   | "Completed";
 
-export interface IMeetingRequest extends Document {
+export interface IMeetingRequest {
   fullName: string;
   email: string;
   phone: string;
@@ -16,8 +16,8 @@ export interface IMeetingRequest extends Document {
   duration: 30 | 60;
   purpose: string;
   status: MeetingStatus;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const meetingRequestSchema = new Schema<IMeetingRequest>(
@@ -27,43 +27,36 @@ const meetingRequestSchema = new Schema<IMeetingRequest>(
       required: true,
       trim: true,
     },
-
     email: {
       type: String,
       required: true,
       lowercase: true,
       trim: true,
     },
-
     phone: {
       type: String,
       required: true,
       trim: true,
     },
-
     preferredDate: {
       type: Date,
       required: true,
     },
-
     preferredTime: {
       type: String,
       required: true,
       trim: true,
     },
-
     duration: {
       type: Number,
       enum: [30, 60],
       required: true,
     },
-
     purpose: {
       type: String,
       required: true,
       trim: true,
     },
-
     status: {
       type: String,
       enum: ["Pending", "Confirmed", "Rejected", "Cancelled", "Completed"],
@@ -75,7 +68,9 @@ const meetingRequestSchema = new Schema<IMeetingRequest>(
   },
 );
 
-export default mongoose.model<IMeetingRequest>(
+const MeetingRequest = mongoose.model<IMeetingRequest>(
   "MeetingRequest",
   meetingRequestSchema,
 );
+
+export default MeetingRequest;

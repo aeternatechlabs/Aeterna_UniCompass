@@ -11,17 +11,15 @@ interface MeetingEmailData {
 }
 
 const escapeHtml = (value: string): string => {
-  return value.replace(/[&<>"']/g, (char) => {
-    const entities: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
+  const entities: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  };
 
-    return entities[char];
-  });
+  return value.replace(/[&<>"']/g, (char) => entities[char] ?? char);
 };
 
 const createTransporter = () => {
@@ -71,7 +69,7 @@ const createEmailTemplate = (
       ([label, value]) => `
         <tr>
           <td style="padding:12px 8px;color:#64748b;font-size:14px;border-bottom:1px solid #e5e7eb;">
-            ${escapeHtml(label)}
+            ${escapeHtml(String(label ?? ""))}
           </td>
           <td style="padding:12px 8px;color:#1e293b;font-size:14px;font-weight:600;border-bottom:1px solid #e5e7eb;">
             ${escapeHtml(String(value))}
