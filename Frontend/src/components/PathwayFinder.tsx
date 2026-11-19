@@ -7,8 +7,7 @@ import {
 import type { PathwayFilter, ThemeMode } from "../types";
 import { motion } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
-// If using Vite/bundler, you can also do: import fieldCollage from "../assets/field.png";
-const FIELD_COLLAGE_URL = "/images/field.png"; // Update path to match where you store the image
+
 
 interface PathwayFinderProps {
   theme: ThemeMode;
