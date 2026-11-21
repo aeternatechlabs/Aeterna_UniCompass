@@ -14,6 +14,7 @@ interface StudentSupportModalProps {
 const initialForm: SupportData = {
   fullName: "",
   email: "",
+  preferredLocation: "",
   category: "",
   subject: "",
   message: "",
@@ -155,6 +156,21 @@ const StudentSupportModal: React.FC<StudentSupportModalProps> = ({
               placeholder="Email Address"
               className={inputClass}
             />
+
+            <select
+              name="preferredLocation"
+              value={form.preferredLocation}
+              onChange={(e) =>
+                setForm({ ...form, preferredLocation: e.target.value })
+              }
+              required
+              className={inputClass}
+            >
+              <option value="">Select preferred location</option>
+              <option value="Mysuru">Mysuru</option>
+              <option value="Belagavi">Belagavi</option>
+              <option value="Bengaluru">Bengaluru</option>
+            </select>
 
             <select
               name="category"

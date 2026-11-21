@@ -35,6 +35,7 @@ const SpeakWithAdvisorModal: React.FC<SpeakWithAdvisorModalProps> = ({
     fullName: "",
     email: "",
     phone: "",
+    preferredLocation: "",
     purpose: "",
   });
 
@@ -68,7 +69,9 @@ const SpeakWithAdvisorModal: React.FC<SpeakWithAdvisorModalProps> = ({
   const labelClass = "block text-sm font-semibold mb-2";
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value } = e.target;
 
@@ -275,6 +278,23 @@ const SpeakWithAdvisorModal: React.FC<SpeakWithAdvisorModalProps> = ({
                   onChange={handleChange}
                   className={inputClass}
                 />
+              </div>
+
+              <div>
+                <label className={labelClass}>Preferred Location</label>
+
+                <select
+                  name="preferredLocation"
+                  required
+                  value={formData.preferredLocation}
+                  onChange={handleChange}
+                  className={inputClass}
+                >
+                  <option value="">Select a location</option>
+                  <option value="Mysuru">Mysuru</option>
+                  <option value="Belagavi">Belagavi</option>
+                  <option value="Bengaluru">Bengaluru</option>
+                </select>
               </div>
 
               <div>

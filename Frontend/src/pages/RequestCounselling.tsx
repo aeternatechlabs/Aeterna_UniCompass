@@ -16,13 +16,15 @@ const initialForm: CounsellingData = {
   email: "",
   phone: "",
   preferredDestination: "",
+  preferredLocation: "",
   courseInterest: "",
   message: "",
 };
 
-const RequestCounsellingModal: React.FC<
-  RequestCounsellingModalProps
-> = ({ theme, onClose }) => {
+const RequestCounsellingModal: React.FC<RequestCounsellingModalProps> = ({
+  theme,
+  onClose,
+}) => {
   const [form, setForm] = useState<CounsellingData>(initialForm);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
@@ -129,6 +131,22 @@ const RequestCounsellingModal: React.FC<
             <option value="Australia">Australia</option>
             <option value="Germany">Germany</option>
             <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label className={labelClass}>Preferred Location</label>
+          <select
+            name="preferredLocation"
+            value={form.preferredLocation}
+            onChange={handleChange}
+            required
+            className={inputClass}
+          >
+            <option value="">Select a location</option>
+            <option value="Mysuru">Mysuru</option>
+            <option value="Belagavi">Belagavi</option>
+            <option value="Bengaluru">Bengaluru</option>
           </select>
         </div>
 
