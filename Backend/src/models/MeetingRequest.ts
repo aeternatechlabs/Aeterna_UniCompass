@@ -11,6 +11,7 @@ export interface IMeetingRequest {
   fullName: string;
   email: string;
   phone: string;
+  preferredLocation?: string;
   preferredDate: Date;
   preferredTime: string;
   duration: 30 | 60;
@@ -36,6 +37,10 @@ const meetingRequestSchema = new Schema<IMeetingRequest>(
     phone: {
       type: String,
       required: true,
+      trim: true,
+    },
+    preferredLocation: {
+      type: String,
       trim: true,
     },
     preferredDate: {

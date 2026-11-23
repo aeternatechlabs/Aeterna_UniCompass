@@ -5,6 +5,7 @@ export interface CounsellingData {
   email: string;
   phone: string;
   preferredDestination: string;
+  preferredLocation: string;
   courseInterest: string;
   message: string;
 }
@@ -12,6 +13,7 @@ export interface CounsellingData {
 export interface SupportData {
   fullName: string;
   email: string;
+  preferredLocation: string;
   category: string;
   subject: string;
   message: string;
@@ -42,6 +44,7 @@ export const submitCounsellingRequest = (data: CounsellingData) =>
     email: data.email,
     phone: data.phone,
     country: data.preferredDestination,
+    preferredLocation: data.preferredLocation,
     course: data.courseInterest,
     message: data.message,
   });

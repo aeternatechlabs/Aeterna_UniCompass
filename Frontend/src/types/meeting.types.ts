@@ -2,6 +2,7 @@ export interface MeetingRequestData {
   fullName: string;
   email: string;
   phone: string;
+  preferredLocation: string;
   preferredDate: string;
   preferredTime: string;
   duration: 30 | 60;

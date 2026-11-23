@@ -20,7 +20,6 @@ interface AiChatWidgetProps {
   theme: ThemeMode;
   currentFilters?: PathwayFilter;
   counsellingPath?: string;
-  onQrScanned?: (decodedValue: string) => void;
 }
 
 export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
@@ -29,7 +28,6 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
   theme,
   currentFilters,
   counsellingPath = "/counselling-request",
-  onQrScanned,
 }) => {
   const isLight = theme === "light";
 
@@ -379,13 +377,12 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
         )}
       </div>
 
-      {/* QR Code Camera Scanner Modal */}
+      {/* Counselling Form QR Modal */}
       <QrScannerModal
         isOpen={isQrModalOpen}
         onClose={() => setIsQrModalOpen(false)}
         theme={theme}
         counsellingPath={counsellingPath}
-        onScanned={onQrScanned}
       />
     </>
   );

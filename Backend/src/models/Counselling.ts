@@ -5,6 +5,7 @@ export interface ICounselling extends Document {
   email: string;
   phone?: string;
   country?: string;
+  preferredLocation?: string;
   course?: string;
   message?: string;
   status: "Pending" | "In Progress" | "Completed";
@@ -30,6 +31,10 @@ const counsellingSchema = new Schema<ICounselling>(
       trim: true,
     },
     country: {
+      type: String,
+      trim: true,
+    },
+    preferredLocation: {
       type: String,
       trim: true,
     },

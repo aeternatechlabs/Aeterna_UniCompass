@@ -10,13 +10,13 @@ export const createMeetingRequest = async (req: Request, res: Response) => {
       fullName,
       email,
       phone,
+      preferredLocation,
       preferredDate,
       preferredTime,
       duration,
       purpose,
     } = req.body;
 
-    // Validate required fields
     if (
       !fullName ||
       !email ||
@@ -32,7 +32,6 @@ export const createMeetingRequest = async (req: Request, res: Response) => {
       });
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
@@ -42,15 +41,16 @@ export const createMeetingRequest = async (req: Request, res: Response) => {
       });
     }
 
-    // Validate duration
-    if (![30, 60].includes(Number(duration))) {
+    // Narrow duration to literal 30 | 60 for Mongoose & MeetingEmailData
+    const numericDuration = Number(duration);
+    if (numericDuration !== 30 && numericDuration !== 60) {
       return res.status(400).json({
         success: false,
         message: "Meeting duration must be 30 or 60 minutes.",
       });
     }
+    const meetingDuration: 30 | 60 = numericDuration;
 
-    // Validate preferred date
     const meetingDate = new Date(preferredDate);
 
     if (Number.isNaN(meetingDate.getTime())) {
@@ -67,7 +67,6 @@ export const createMeetingRequest = async (req: Request, res: Response) => {
       });
     }
 
-    // Validate time format (example: 10:00 AM)
     const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i;
 
     if (!timeRegex.test(preferredTime.trim())) {
@@ -77,20 +76,20 @@ export const createMeetingRequest = async (req: Request, res: Response) => {
       });
     }
 
-    // Save meeting request in MongoDB
+    const trimmedLocation = preferredLocation?.trim();
+
     const meetingRequest = await MeetingRequest.create({
       fullName: fullName.trim(),
       email: email.trim().toLowerCase(),
       phone: phone.trim(),
+      ...(trimmedLocation ? { preferredLocation: trimmedLocation } : {}),
       preferredDate: meetingDate,
       preferredTime: preferredTime.trim().toUpperCase(),
-      duration: Number(duration),
+      duration: meetingDuration,
       purpose: purpose.trim(),
       status: "Pending",
     });
 
-    // Send adviser and student emails
-    // Email failure does not delete the saved request.
     let emailSent = true;
 
     try {
@@ -98,6 +97,9 @@ export const createMeetingRequest = async (req: Request, res: Response) => {
         fullName: meetingRequest.fullName,
         email: meetingRequest.email,
         phone: meetingRequest.phone,
+        ...(meetingRequest.preferredLocation
+          ? { preferredLocation: meetingRequest.preferredLocation }
+          : {}),
         preferredDate: meetingRequest.preferredDate,
         preferredTime: meetingRequest.preferredTime,
         duration: meetingRequest.duration,

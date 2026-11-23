@@ -4,6 +4,7 @@ interface MeetingEmailData {
   fullName: string;
   email: string;
   phone: string;
+  preferredLocation?: string;
   preferredDate: Date | string;
   preferredTime: string;
   duration: 30 | 60;
@@ -58,6 +59,9 @@ const createEmailTemplate = (
     ["Student Name", data.fullName],
     ["Email Address", data.email],
     ["Phone Number", data.phone],
+    ...(data.preferredLocation
+      ? [["Preferred Location", data.preferredLocation]]
+      : []),
     ["Preferred Date", formatDate(data.preferredDate)],
     ["Preferred Time", data.preferredTime],
     ["Duration", `${data.duration} minutes`],
@@ -153,19 +157,23 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
     `Student: ${data.fullName}`,
     `Email: ${data.email}`,
     `Phone: ${data.phone}`,
+    data.preferredLocation && `Preferred Location: ${data.preferredLocation}`,
     `Date: ${formatDate(data.preferredDate)}`,
     `Time: ${data.preferredTime}`,
     `Duration: ${data.duration} minutes`,
     `Purpose: ${data.purpose}`,
     "",
     "Status: Pending Adviser Confirmation",
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const studentMessage = [
     `Hello ${data.fullName},`,
     "",
     "We have received your advisor meeting request.",
     "",
+    data.preferredLocation && `Preferred location: ${data.preferredLocation}`,
     `Preferred date: ${formatDate(data.preferredDate)}`,
     `Preferred time: ${data.preferredTime}`,
     `Duration: ${data.duration} minutes`,
@@ -173,14 +181,16 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
     "Your meeting is not confirmed yet. Our adviser will review your request and contact you.",
     "",
     "Thank you for choosing Aeterna.",
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const results = await Promise.all([
     transporter.sendMail({
       from: { name: "Aeterna", address: adminEmail },
       to: notificationEmail,
       replyTo: data.email,
-      subject: "New Advisor Meeting Request - Aeterna",
+      subject: `New Advisor Meeting Request${data.preferredLocation ? ` - ${data.preferredLocation}` : ""} - Aeterna`,
       text: adminMessage,
       html: createEmailTemplate(
         "New Advisor Meeting Request",

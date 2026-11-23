@@ -5,6 +5,7 @@ interface AssistanceEmailData {
   fullName: string;
   email: string;
   phone?: string;
+  preferredLocation?: string;
   category?: string;
   country?: string;
   course?: string;
@@ -31,6 +32,7 @@ const createEmailTemplate = (data: AssistanceEmailData) => {
     ["Full Name", data.fullName],
     ["Email Address", data.email],
     ["Phone Number", data.phone],
+    ["Preferred Location", data.preferredLocation],
     ["Category", data.category],
     ["Country", data.country],
     ["Course", data.course],
@@ -79,7 +81,7 @@ const createEmailTemplate = (data: AssistanceEmailData) => {
               </span>
 
               <h2 style="color:#073b4c;margin:20px 0 10px;">
-                New ${data.type} Request
+                New ${data.type} Request${data.preferredLocation ? ` (${escapeHtml(data.preferredLocation)})` : ""}
               </h2>
 
               <p style="color:#64748b;font-size:14px;line-height:1.7;">
@@ -159,6 +161,7 @@ export const sendAssistanceEmail = async (data: AssistanceEmailData) => {
     `Student name: ${data.fullName}`,
     `Student email: ${data.email}`,
     data.phone && `Phone: ${data.phone}`,
+    data.preferredLocation && `Preferred location: ${data.preferredLocation}`,
     data.category && `Category: ${data.category}`,
     data.country && `Country: ${data.country}`,
     data.course && `Course: ${data.course}`,
@@ -175,7 +178,7 @@ export const sendAssistanceEmail = async (data: AssistanceEmailData) => {
     },
     to: notificationEmail,
     replyTo: data.email,
-    subject: `New ${data.type} Request - Aeterna`,
+    subject: `New ${data.type} Request${data.preferredLocation ? ` - ${data.preferredLocation}` : ""} - Aeterna`,
     text: details,
     html: createEmailTemplate(data),
   });

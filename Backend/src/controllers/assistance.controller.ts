@@ -9,7 +9,15 @@ import { sendAssistanceEmail } from "../services/email.service.js";
 // Submit counselling request
 export const createCounsellingRequest = async (req: Request, res: Response) => {
   try {
-    const { fullName, email, phone, country, course, message } = req.body;
+    const {
+      fullName,
+      email,
+      phone,
+      country,
+      preferredLocation,
+      course,
+      message,
+    } = req.body;
 
     if (!fullName || !email) {
       return res.status(400).json({
@@ -23,6 +31,7 @@ export const createCounsellingRequest = async (req: Request, res: Response) => {
       email,
       phone,
       country,
+      preferredLocation,
       course,
       message,
     });
@@ -34,6 +43,7 @@ export const createCounsellingRequest = async (req: Request, res: Response) => {
         email,
         phone,
         country,
+        preferredLocation,
         course,
         message,
       });
@@ -59,7 +69,8 @@ export const createCounsellingRequest = async (req: Request, res: Response) => {
 // Submit student support request
 export const createSupportRequest = async (req: Request, res: Response) => {
   try {
-    const { fullName, email, category, subject, message } = req.body;
+    const { fullName, email, preferredLocation, category, subject, message } =
+      req.body;
 
     if (!fullName || !email || !category || !subject || !message) {
       return res.status(400).json({
@@ -71,6 +82,7 @@ export const createSupportRequest = async (req: Request, res: Response) => {
     const support = await Support.create({
       fullName,
       email,
+      preferredLocation,
       category,
       subject,
       message,
@@ -81,6 +93,7 @@ export const createSupportRequest = async (req: Request, res: Response) => {
         type: "Student Support",
         fullName,
         email,
+        preferredLocation,
         category,
         subject,
         message,

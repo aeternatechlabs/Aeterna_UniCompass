@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface ISupport extends Document {
   fullName: string;
   email: string;
+  preferredLocation?: string;
   category: string;
   subject: string;
   message: string;
@@ -22,6 +23,10 @@ const supportSchema = new Schema<ISupport>(
       type: String,
       required: true,
       lowercase: true,
+      trim: true,
+    },
+    preferredLocation: {
+      type: String,
       trim: true,
     },
     category: {
