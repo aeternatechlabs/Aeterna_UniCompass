@@ -1,5 +1,3 @@
-import nodemailer from "nodemailer";
-
 interface MeetingEmailData {
   fullName: string;
   email: string;
@@ -23,23 +21,6 @@ const escapeHtml = (value: string): string => {
   return value.replace(/[&<>"']/g, (char) => entities[char] ?? char);
 };
 
-const createTransporter = () => {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const appPassword = process.env.ADMIN_EMAIL_APP_PASSWORD;
-
-  if (!adminEmail || !appPassword) {
-    throw new Error("Email environment variables are missing.");
-  }
-
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: adminEmail,
-      pass: appPassword.replace(/\s/g, ""),
-    },
-  });
-};
-
 const formatDate = (date: Date | string) => {
   return new Date(date).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -47,6 +28,40 @@ const formatDate = (date: Date | string) => {
     year: "numeric",
     timeZone: "Asia/Kolkata",
   });
+};
+
+const sendResendEmail = async (payload: {
+  from: string;
+  to: string[];
+  reply_to?: string;
+  subject: string;
+  text: string;
+  html: string;
+}) => {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is missing.");
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey.trim()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      `Resend API error (${response.status}): ${JSON.stringify(result)}`,
+    );
+  }
+
+  return result;
 };
 
 const createEmailTemplate = (
@@ -142,14 +157,12 @@ const createEmailTemplate = (
 };
 
 export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
-  const adminEmail = process.env.ADMIN_EMAIL;
+  const senderEmail = process.env.SENDER_EMAIL;
   const notificationEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
 
-  if (!adminEmail || !notificationEmail) {
-    throw new Error("Email environment variables are missing.");
+  if (!senderEmail || !notificationEmail) {
+    throw new Error("SENDER_EMAIL or ADMIN_NOTIFICATION_EMAIL is missing.");
   }
-
-  const transporter = createTransporter();
 
   const adminMessage = [
     "A new advisor meeting request has been submitted.",
@@ -186,10 +199,10 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
     .join("\n");
 
   const results = await Promise.all([
-    transporter.sendMail({
-      from: { name: "Aeterna", address: adminEmail },
-      to: notificationEmail,
-      replyTo: data.email,
+    sendResendEmail({
+      from: `${data.fullName} (via Aeterna) <${senderEmail.trim()}>`,
+      to: [notificationEmail.trim()],
+      reply_to: data.email,
       subject: `New Advisor Meeting Request${data.preferredLocation ? ` - ${data.preferredLocation}` : ""} - Aeterna`,
       text: adminMessage,
       html: createEmailTemplate(
@@ -200,9 +213,9 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
       ),
     }),
 
-    transporter.sendMail({
-      from: { name: "Aeterna", address: adminEmail },
-      to: data.email,
+    sendResendEmail({
+      from: `Aeterna <${senderEmail.trim()}>`,
+      to: [data.email],
       subject: "Your Meeting Request Has Been Received - Aeterna",
       text: studentMessage,
       html: createEmailTemplate(
@@ -215,8 +228,8 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
   ]);
 
   console.log(
-    "Meeting request emails sent:",
-    results.map((result) => result.messageId),
+    "Resend meeting request emails sent:",
+    results.map((result) => result.id),
   );
 
   return results;

@@ -1,5 +1,3 @@
-import nodemailer from "nodemailer";
-
 interface AssistanceEmailData {
   type: "Counselling" | "Student Support";
   fullName: string;
@@ -140,21 +138,13 @@ const createEmailTemplate = (data: AssistanceEmailData) => {
 };
 
 export const sendAssistanceEmail = async (data: AssistanceEmailData) => {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const appPassword = process.env.ADMIN_EMAIL_APP_PASSWORD;
+  const apiKey = process.env.RESEND_API_KEY;
+  const senderEmail = process.env.SENDER_EMAIL;
   const notificationEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
 
-  if (!adminEmail || !appPassword || !notificationEmail) {
-    throw new Error("Email environment variables are missing.");
+  if (!apiKey || !senderEmail || !notificationEmail) {
+    throw new Error("Resend email environment variables are missing.");
   }
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: adminEmail,
-      pass: appPassword.replace(/\s/g, ""),
-    },
-  });
 
   const details = [
     `Request type: ${data.type}`,
@@ -171,19 +161,31 @@ export const sendAssistanceEmail = async (data: AssistanceEmailData) => {
     .filter(Boolean)
     .join("\n");
 
-  const result = await transporter.sendMail({
-    from: {
-      name: "Aeterna",
-      address: adminEmail,
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey.trim()}`,
+      "Content-Type": "application/json",
     },
-    to: notificationEmail,
-    replyTo: data.email,
-    subject: `New ${data.type} Request${data.preferredLocation ? ` - ${data.preferredLocation}` : ""} - Aeterna`,
-    text: details,
-    html: createEmailTemplate(data),
+    body: JSON.stringify({
+      from: `${data.fullName} (via Aeterna) <${senderEmail.trim()}>`,
+      to: [notificationEmail.trim()],
+      reply_to: data.email,
+      subject: `New ${data.type} Request${data.preferredLocation ? ` - ${data.preferredLocation}` : ""} - Aeterna`,
+      text: details,
+      html: createEmailTemplate(data),
+    }),
   });
 
-  console.log("Email sent successfully:", result.messageId);
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      `Resend API error (${response.status}): ${JSON.stringify(result)}`,
+    );
+  }
+
+  console.log("Resend email sent successfully:", result.id);
 
   return result;
 };
