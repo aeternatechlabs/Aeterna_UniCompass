@@ -1,0 +1,46 @@
+
+name: Deploy UniCompass Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Backend/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: unicompass-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Lightsail
+        env:
+          HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          USER: ${{ secrets.LIGHTSAIL_USER }}
+          SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key "$USER@$HOST" <<'EOF'
+            set -e
+
+            cd /var/www/unicompass
+            git fetch origin main
+            git reset --hard origin/main
+
+            cd Backend
+            npm ci
+            npm run build
+
+            pm2 restart unicompass --update-env
+            pm2 save
+          EOF
