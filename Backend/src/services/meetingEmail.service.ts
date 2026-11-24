@@ -227,10 +227,6 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
     }),
   ]);
 
-  console.log(
-    "Resend meeting request emails sent:",
-    results.map((result) => result.id),
-  );
 
   return results;
 };
