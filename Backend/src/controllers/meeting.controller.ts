@@ -60,10 +60,13 @@ export const createMeetingRequest = async (req: Request, res: Response) => {
       });
     }
 
-    if (meetingDate <= new Date()) {
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+
+    if (meetingDate < todayMidnight) {
       return res.status(400).json({
         success: false,
-        message: "Please select a future meeting date.",
+        message: "Please select a current or future meeting date.",
       });
     }
 

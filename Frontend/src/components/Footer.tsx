@@ -1,5 +1,6 @@
 import React from "react";
 import type { ThemeMode } from "../types";
+import logoImg from "../assets/Logo.webp";
 
 interface FooterProps {
   theme: ThemeMode;
@@ -7,6 +8,8 @@ interface FooterProps {
   onScrollToSection: (sectionId: string) => void;
   onOpenGlobalPath: () => void;
   onOpenAssistance: (modalType: "counselling" | "advisor" | "support") => void;
+  onNavigate?: (path: string) => void;
+  onOpenCookiePreferences?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -14,6 +17,8 @@ export const Footer: React.FC<FooterProps> = ({
   onScrollToSection,
   onOpenGlobalPath,
   onOpenAssistance,
+  onNavigate,
+  onOpenCookiePreferences,
 }) => {
   return (
     <footer className="w-full bg-[#001f29] text-[#CAE4DB] pt-16 pb-12 border-t border-[#7A9D96]/30 font-sans">
@@ -22,15 +27,24 @@ export const Footer: React.FC<FooterProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-[#7A9D96]/20 text-xs">
           {/* Col 1: Brand Info */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#00303F] border border-[#DCAE1D] flex items-center justify-center text-[#DCAE1D]">
+            <div
+              onClick={() => {
+                if (onNavigate) {
+                  onNavigate("/");
+                } else {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
+              className="flex items-center gap-2.5 cursor-pointer group"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#00303F] border border-[#DCAE1D] flex items-center justify-center text-[#DCAE1D] group-hover:rotate-45 transition-transform duration-300">
                 <img
-                  src="/src/assets/Logo.png"
-                  alt="Logo"
+                  src={logoImg}
+                  alt="Aeterna Logo"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="text-lg font-bold tracking-wider text-white font-serif">
+              <span className="text-lg font-bold tracking-wider text-white font-serif group-hover:text-[#DCAE1D] transition-colors">
                 AETERNA
               </span>
             </div>
@@ -132,7 +146,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <button
                   onClick={() => onOpenAssistance("counselling")}
-                  className="hover:text-[#DCAE1D] transition-colors"
+                  className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
                 >
                   Request Counselling
                 </button>
@@ -141,7 +155,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <button
                   onClick={() => onOpenAssistance("advisor")}
-                  className="hover:text-[#DCAE1D] transition-colors"
+                  className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
                 >
                   Speak with an Advisor
                 </button>
@@ -150,7 +164,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <button
                   onClick={() => onOpenAssistance("support")}
-                  className="hover:text-[#DCAE1D] transition-colors"
+                  className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
                 >
                   Student Support
                 </button>
@@ -165,18 +179,38 @@ export const Footer: React.FC<FooterProps> = ({
             © 2026 Aeterna / Global Ai. All rights reserved. Designed with
             verified institutional datasets.
           </p>
-          <div className="flex items-center gap-4 text-[#CAE4DB]">
-            <span className="hover:text-[#DCAE1D] cursor-pointer">
+          <div className="flex flex-wrap items-center gap-4 text-[#CAE4DB]">
+            <button
+              onClick={() => onNavigate?.("/privacy-policy")}
+              className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
+            >
               Privacy Policy
-            </span>
+            </button>
             <span className="text-[#7A9D96]">·</span>
-            <span className="hover:text-[#DCAE1D] cursor-pointer">
+            <button
+              onClick={() => onNavigate?.("/terms-and-conditions")}
+              className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
+            >
               Terms of Service
-            </span>
+            </button>
             <span className="text-[#7A9D96]">·</span>
-            <span className="hover:text-[#DCAE1D] cursor-pointer">
+            <button
+              onClick={() => onScrollToSection("compare-costs")}
+              className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
+            >
               Verification Standards
-            </span>
+            </button>
+            {onOpenCookiePreferences && (
+              <>
+                <span className="text-[#7A9D96]">·</span>
+                <button
+                  onClick={onOpenCookiePreferences}
+                  className="hover:text-[#DCAE1D] transition-colors cursor-pointer"
+                >
+                  Cookie Preferences
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

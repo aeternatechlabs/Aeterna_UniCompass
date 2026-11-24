@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Moon, Sun, ArrowRight, Menu, X } from "lucide-react";
+import logoImg from "../assets/Logo.webp";
 export type ThemeMode = "light" | "dark";
 
 interface NavbarProps {
@@ -73,8 +74,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <div className="w-13 h-13 rounded-full bg-[#00303F] border border-[#DCAE1D] flex items-center justify-center text-[#DCAE1D] shadow-sm group-hover:rotate-45 transition-transform duration-300">
               <img
-                src="/src/assets/Logo.png"
-                alt="Logo"
+                src={logoImg}
+                alt="Aeterna Logo"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -179,6 +180,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
               className={`p-1.5 ${isLight ? "text-[#00303F]" : "text-[#CAE4DB]"}`}
             >
               {mobileMenuOpen ? (

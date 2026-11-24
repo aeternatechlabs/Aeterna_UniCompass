@@ -22,6 +22,16 @@ interface AiChatWidgetProps {
   counsellingPath?: string;
 }
 
+const createChatMessage = (sender: "user" | "ai", text: string): ChatMessage => ({
+  id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+  sender,
+  text,
+  timestamp: new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  }),
+});
+
 export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
   isOpen,
   onToggle,
@@ -55,15 +65,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
     const textToSend = customPrompt || inputText;
     if (!textToSend.trim() || loading) return;
 
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      sender: "user",
-      text: textToSend,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
+    const userMsg = createChatMessage("user", textToSend);
 
     setMessages((prev) => [...prev, userMsg]);
     if (!customPrompt) setInputText("");
@@ -86,15 +88,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
         throw new Error(data.message || "AI chat request failed");
       }
 
-      const aiMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        sender: "ai",
-        text: data.reply,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      };
+      const aiMsg = createChatMessage("ai", data.reply);
 
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
@@ -105,15 +99,7 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
         currentFilters,
       );
 
-      const aiMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        sender: "ai",
-        text: fallbackReply,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      };
+      const aiMsg = createChatMessage("ai", fallbackReply);
 
       setMessages((prev) => [...prev, aiMsg]);
     } finally {
@@ -171,6 +157,8 @@ export const AiChatWidget: React.FC<AiChatWidgetProps> = ({
 
             <button
               onClick={onToggle}
+              aria-label="Open Global AI Assistant"
+              aria-expanded={isOpen}
               className="bg-[#00303F] hover:bg-[#002632] text-[#CAE4DB] px-4 py-2.5 rounded-full shadow-2xl border border-[#7A9D96]/60 flex items-center gap-2 transition-all duration-300 hover:scale-105 group cursor-pointer"
             >
               <span className="text-[#DCAE1D] font-bold text-sm">✦</span>

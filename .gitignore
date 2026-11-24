@@ -1,0 +1,9 @@
+# Root Git Ignore
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store

@@ -96,13 +96,7 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
     void fetchGlobalPathPreview();
 
     return () => controller.abort();
-  }, [
-    isOpen,
-    filters.education,
-    filters.field,
-    filters.budget,
-    filters.destination,
-  ]);
+  }, [isOpen, filters]);
 
   if (!isOpen) return null;
 
@@ -123,6 +117,9 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#00303F]/80 backdrop-blur-sm animate-in fade-in duration-200 font-sans">
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="globalpath-modal-title"
         className={`rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative border max-h-[92vh] overflow-y-auto ${
           isLight
             ? "bg-white border-[#CAE4DB] text-[#00303F]"
@@ -133,6 +130,7 @@ export const GlobalPathModal: React.FC<GlobalPathModalProps> = ({
         {/* Close button */}
         <button
           onClick={onClose}
+          aria-label="Close modal"
           className="absolute top-5 right-5 p-1.5 rounded-full text-[#7A9D96] hover:text-[#DCAE1D] transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />

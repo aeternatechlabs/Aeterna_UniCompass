@@ -1,0 +1,9 @@
+# Aeterna UniCompass Robots Configuration
+User-agent: *
+Allow: /
+Allow: /privacy-policy
+Allow: /terms-and-conditions
+Disallow: /api/
+Disallow: /*?*admin=
+
+Sitemap: https://aeternaunicompass.com/sitemap.xml

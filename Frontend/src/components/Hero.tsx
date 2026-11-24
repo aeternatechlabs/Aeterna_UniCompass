@@ -1,4 +1,5 @@
 import React from "react";
+import heroImg from "../assets/Hero.webp";
 import type { ThemeMode } from "../types";
 import { motion } from "framer-motion";
 
@@ -24,7 +25,7 @@ export const Hero: React.FC<HeroProps> = ({
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          src="/src/assets/Hero.png"
+          src={heroImg}
           alt="Majestic Historic University Campus"
           className="w-full h-full object-cover object-center filter contrast-125"
         />

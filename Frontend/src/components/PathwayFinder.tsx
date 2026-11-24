@@ -7,6 +7,7 @@ import {
 import type { PathwayFilter, ThemeMode } from "../types";
 import { motion } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
+import fieldImg from "../assets/field.webp";
 
 
 interface PathwayFinderProps {
@@ -45,7 +46,7 @@ export const PathwayFinder: React.FC<PathwayFinderProps> = ({
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center opacity-85 scale-[1.02]"
-          style={{ backgroundImage: `url('/src/assets/field.png')` }}
+          style={{ backgroundImage: `url(${fieldImg})` }}
         />
 
         {/* Readability Overlay Gradient */}

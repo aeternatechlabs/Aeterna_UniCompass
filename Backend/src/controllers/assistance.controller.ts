@@ -19,21 +19,50 @@ export const createCounsellingRequest = async (req: Request, res: Response) => {
       message,
     } = req.body;
 
-    if (!fullName || !email) {
+    if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
       return res.status(400).json({
         success: false,
-        message: "Name and email are required.",
+        message: "Full name is required.",
+      });
+    }
+
+    if (!email || typeof email !== "string" || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Email address is required.",
+      });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim()) || email.length > 254) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address.",
+      });
+    }
+
+    if (fullName.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Name must be less than 100 characters.",
+      });
+    }
+
+    if (message && typeof message === "string" && message.length > 3000) {
+      return res.status(400).json({
+        success: false,
+        message: "Message must be less than 3000 characters.",
       });
     }
 
     const counselling = await Counselling.create({
-      fullName,
-      email,
-      phone,
-      country,
-      preferredLocation,
-      course,
-      message,
+      fullName: fullName.trim(),
+      email: email.trim().toLowerCase(),
+      phone: typeof phone === "string" ? phone.trim().slice(0, 30) : "",
+      country: typeof country === "string" ? country.trim().slice(0, 100) : "",
+      preferredLocation: typeof preferredLocation === "string" ? preferredLocation.trim().slice(0, 100) : "",
+      course: typeof course === "string" ? course.trim().slice(0, 150) : "",
+      message: typeof message === "string" ? message.trim() : "",
     });
 
     try {
@@ -72,20 +101,49 @@ export const createSupportRequest = async (req: Request, res: Response) => {
     const { fullName, email, preferredLocation, category, subject, message } =
       req.body;
 
-    if (!fullName || !email || !category || !subject || !message) {
+    if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Full name is required.",
+      });
+    }
+
+    if (!email || typeof email !== "string" || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Email address is required.",
+      });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim()) || email.length > 254) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address.",
+      });
+    }
+
+    if (!category || !subject || !message) {
       return res.status(400).json({
         success: false,
         message: "Please provide all required fields.",
       });
     }
 
+    if (fullName.length > 100 || subject.length > 200 || message.length > 3000) {
+      return res.status(400).json({
+        success: false,
+        message: "Input length exceeds allowed limits.",
+      });
+    }
+
     const support = await Support.create({
-      fullName,
-      email,
-      preferredLocation,
-      category,
-      subject,
-      message,
+      fullName: fullName.trim(),
+      email: email.trim().toLowerCase(),
+      preferredLocation: typeof preferredLocation === "string" ? preferredLocation.trim().slice(0, 100) : "",
+      category: typeof category === "string" ? category.trim().slice(0, 100) : "",
+      subject: typeof subject === "string" ? subject.trim().slice(0, 200) : "",
+      message: typeof message === "string" ? message.trim() : "",
     });
 
     try {

@@ -15,14 +15,25 @@ import { Footer } from "./components/Footer";
 import { GlobalPathModal } from "./components/GlobalPathModal";
 import { SmartMatchModal } from "./components/SmartMatchModel";
 import { AiChatWidget } from "./components/AiChatWidget";
+import { CookieConsent } from "./components/CookieConsent";
 
 import RequestCounselling from "./pages/RequestCounselling";
 import SpeakWithAdvisor from "./pages/SpeakWithAdvisor";
 import StudentSupport from "./pages/StudentSupport";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import NotFound from "./pages/NotFound";
+
 type AssistanceModalType = "counselling" | "advisor" | "support" | null;
 
 const App = () => {
   const [theme, setTheme] = useState<ThemeMode>("light");
+  const [currentPath, setCurrentPath] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return window.location.pathname || "/";
+    }
+    return "/";
+  });
 
   const [filters, setFilters] = useState<PathwayFilter>({
     education: "Graduate",
@@ -34,6 +45,7 @@ const App = () => {
   const [isGlobalPathModalOpen, setIsGlobalPathModalOpen] = useState(false);
   const [isSmartMatchModalOpen, setIsSmartMatchModalOpen] = useState(false);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+  const [isCookieModalOpen, setIsCookieModalOpen] = useState(false);
 
   // Controls Student Assistance modals
   const [activeAssistanceModal, setActiveAssistanceModal] =
@@ -49,6 +61,36 @@ const App = () => {
     }
   }, [theme]);
 
+  // Synchronize browser history and popstate
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname || "/");
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const navigateTo = (path: string) => {
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, "", path);
+    }
+    setCurrentPath(path);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Update document title dynamically based on route
+    if (path === "/privacy-policy") {
+      document.title = "Privacy Policy | Aeterna UniCompass";
+    } else if (path === "/terms-and-conditions") {
+      document.title = "Terms & Conditions | Aeterna UniCompass";
+    } else if (path === "/" || path === "") {
+      document.title =
+        "Aeterna UniCompass | AI-Powered Global Education & University Pathway Discovery";
+    } else {
+      document.title = "Page Not Found | Aeterna UniCompass";
+    }
+  };
+
   const handleToggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
@@ -58,8 +100,18 @@ const App = () => {
   };
 
   const handleScrollToSection = (sectionId: string) => {
-    const el = document.getElementById(sectionId);
+    if (currentPath !== "/") {
+      navigateTo("/");
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+      return;
+    }
 
+    const el = document.getElementById(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -88,9 +140,15 @@ const App = () => {
     setIsGlobalPathModalOpen(true);
   };
 
-  const handleLearnMoreShortProgrammes = (_type: string) => {
+  const handleLearnMoreShortProgrammes = () => {
     setIsAiChatOpen(true);
   };
+
+  // Determine which page view to render
+  const isHome = currentPath === "/" || currentPath === "";
+  const isPrivacy = currentPath === "/privacy-policy";
+  const isTerms = currentPath === "/terms-and-conditions";
+  const is404 = !isHome && !isPrivacy && !isTerms;
 
   return (
     <div
@@ -109,46 +167,75 @@ const App = () => {
         onOpenGlobalPath={() => setIsGlobalPathModalOpen(true)}
       />
 
-      {/* Main Content */}
+      {/* Main Content Router */}
       <main>
-        <Hero
-          theme={theme}
-          onDiscoverClick={() => handleScrollToSection("pathways")}
-          onSeeHowItWorksClick={() => handleScrollToSection("foursteps")}
-        />
+        {isHome && (
+          <>
+            <Hero
+              theme={theme}
+              onDiscoverClick={() => handleScrollToSection("pathways")}
+              onSeeHowItWorksClick={() => handleScrollToSection("foursteps")}
+            />
 
-        <TickerMarquee />
+            <TickerMarquee />
 
-        <PathwayFinder
-          theme={theme}
-          filter={filters}
-          onFilterChange={handleFilterChange}
-          onExploreClick={() => setIsGlobalPathModalOpen(true)}
-          onDetailedClick={() => setIsSmartMatchModalOpen(true)}
-        />
+            <PathwayFinder
+              theme={theme}
+              filter={filters}
+              onFilterChange={handleFilterChange}
+              onExploreClick={() => setIsGlobalPathModalOpen(true)}
+              onDetailedClick={() => setIsSmartMatchModalOpen(true)}
+            />
 
-        <ExploreDestinations
-          theme={theme}
-          onSelectDestination={handleSelectDestination}
-        />
+            <ExploreDestinations
+              theme={theme}
+              onSelectDestination={handleSelectDestination}
+            />
 
-        <PopularPathways theme={theme} onSelectField={handleSelectField} />
+            <PopularPathways theme={theme} onSelectField={handleSelectField} />
 
-        <SmartMatchSection
-          theme={theme}
-          onStartSmartMatch={() => setIsSmartMatchModalOpen(true)}
-        />
+            <SmartMatchSection
+              theme={theme}
+              onStartSmartMatch={() => setIsSmartMatchModalOpen(true)}
+            />
 
-        <CostComparison theme={theme} />
+            <CostComparison theme={theme} />
 
-        <ShortProgrammes
-          theme={theme}
-          onLearnMore={handleLearnMoreShortProgrammes}
-        />
+            <ShortProgrammes
+              theme={theme}
+              onLearnMore={handleLearnMoreShortProgrammes}
+            />
 
-        <FourSteps theme={theme} />
+            <FourSteps theme={theme} />
 
-        <CtaBanner theme={theme} onOpenAiGuide={() => setIsAiChatOpen(true)} />
+            <CtaBanner
+              theme={theme}
+              onOpenAiGuide={() => setIsAiChatOpen(true)}
+            />
+          </>
+        )}
+
+        {isPrivacy && (
+          <PrivacyPolicy theme={theme} onNavigateHome={() => navigateTo("/")} />
+        )}
+
+        {isTerms && (
+          <TermsAndConditions
+            theme={theme}
+            onNavigateHome={() => navigateTo("/")}
+          />
+        )}
+
+        {is404 && (
+          <NotFound
+            theme={theme}
+            onNavigateHome={() => navigateTo("/")}
+            onOpenSmartMatch={() => {
+              navigateTo("/");
+              setTimeout(() => setIsSmartMatchModalOpen(true), 150);
+            }}
+          />
+        )}
       </main>
 
       {activeAssistanceModal === "counselling" && (
@@ -179,6 +266,8 @@ const App = () => {
         onScrollToSection={handleScrollToSection}
         onOpenGlobalPath={() => setIsGlobalPathModalOpen(true)}
         onOpenAssistance={(modalType) => setActiveAssistanceModal(modalType)}
+        onNavigate={navigateTo}
+        onOpenCookiePreferences={() => setIsCookieModalOpen(true)}
       />
 
       {/* Existing Modals */}
@@ -203,6 +292,14 @@ const App = () => {
         onToggle={() => setIsAiChatOpen(!isAiChatOpen)}
         theme={theme}
         currentFilters={filters}
+      />
+
+      {/* Cookie Consent Banner & Modal */}
+      <CookieConsent
+        theme={theme}
+        onNavigatePolicy={() => navigateTo("/privacy-policy")}
+        isOpenExplicitly={isCookieModalOpen}
+        onCloseExplicitModal={() => setIsCookieModalOpen(false)}
       />
     </div>
   );

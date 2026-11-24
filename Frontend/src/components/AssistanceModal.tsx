@@ -25,6 +25,9 @@ export const AssistanceModal: React.FC<AssistanceModalProps> = ({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
         className={`rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative border max-h-[92vh] overflow-y-auto ${
           isLight
             ? "bg-white border-[#CAE4DB] text-[#00303F]"
@@ -44,6 +47,7 @@ export const AssistanceModal: React.FC<AssistanceModalProps> = ({
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-[#DCAE1D] font-bold text-lg">✦</span>
             <h2
+              id="modal-title"
               className={`text-lg sm:text-xl font-bold tracking-tight ${
                 isLight ? "text-[#00303F]" : "text-white"
               }`}
