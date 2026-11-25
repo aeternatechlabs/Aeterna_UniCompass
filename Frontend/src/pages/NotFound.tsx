@@ -1,6 +1,7 @@
 import React from "react";
 import type { ThemeMode } from "../types";
-import { Compass, Home, Search, ArrowRight } from "lucide-react";
+import { Home, Search, ArrowRight } from "lucide-react";
+import logoImg from "../assets/Logo.webp";
 
 interface NotFoundProps {
   theme: ThemeMode;
@@ -24,7 +25,11 @@ export const NotFound: React.FC<NotFoundProps> = ({
       <div className="max-w-md w-full text-center space-y-6">
         {/* Animated Icon Badge */}
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#00303F] border-2 border-[#DCAE1D] text-[#DCAE1D] shadow-lg mb-2">
-          <Compass className="w-10 h-10 animate-spin-slow" />
+          <img
+            src={logoImg}
+            alt="Aeterna Logo"
+            className="w-full h-full object-cover"
+          />
         </div>
 
         {/* Status Code */}
@@ -43,7 +48,8 @@ export const NotFound: React.FC<NotFoundProps> = ({
 
         {/* Description */}
         <p className="text-sm text-[#7A9D96] leading-relaxed max-w-sm mx-auto">
-          The educational pathway or page you are searching for does not exist or may have been relocated. Let us help guide you back on track.
+          The educational pathway or page you are searching for does not exist
+          or may have been relocated. Let us help guide you back on track.
         </p>
 
         {/* Action Buttons */}

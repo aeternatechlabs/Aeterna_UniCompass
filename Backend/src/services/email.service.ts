@@ -23,6 +23,18 @@ const escapeHtml = (value: string = ""): string => {
   return value.replace(/[&<>"']/g, (char) => entities[char] ?? char);
 };
 
+const normalizeBranchTag = (preferredLocation?: string): string => {
+  const trimmed = preferredLocation?.trim();
+  if (!trimmed) return "";
+
+  const lower = trimmed.toLowerCase();
+  if (lower === "bangalore" || lower === "bengaluru") return "[Bengaluru] ";
+  if (lower === "mysore" || lower === "mysuru") return "[Mysuru] ";
+  if (lower === "belagavi" || lower === "belgaum") return "[Belagavi] ";
+
+  return `[${trimmed}] `;
+};
+
 const createEmailTemplate = (data: AssistanceEmailData) => {
   const isCounselling = data.type === "Counselling";
 
@@ -146,6 +158,8 @@ export const sendAssistanceEmail = async (data: AssistanceEmailData) => {
     throw new Error("Resend email environment variables are missing.");
   }
 
+  const branchTag = normalizeBranchTag(data.preferredLocation);
+
   const details = [
     `Request type: ${data.type}`,
     `Student name: ${data.fullName}`,
@@ -171,7 +185,7 @@ export const sendAssistanceEmail = async (data: AssistanceEmailData) => {
       from: `${data.fullName} (via Aeterna) <${senderEmail.trim()}>`,
       to: [notificationEmail.trim()],
       reply_to: data.email,
-      subject: `New ${data.type} Request${data.preferredLocation ? ` - ${data.preferredLocation}` : ""} - Aeterna`,
+      subject: `${branchTag}New ${data.type} Request - Aeterna`,
       text: details,
       html: createEmailTemplate(data),
     }),

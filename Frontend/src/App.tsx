@@ -86,6 +86,8 @@ const App = () => {
     } else if (path === "/" || path === "") {
       document.title =
         "Aeterna UniCompass | AI-Powered Global Education & University Pathway Discovery";
+    } else if (path === "/counselling-request") {
+      document.title = "Request Counselling | Aeterna UniCompass";
     } else {
       document.title = "Page Not Found | Aeterna UniCompass";
     }
@@ -148,7 +150,9 @@ const App = () => {
   const isHome = currentPath === "/" || currentPath === "";
   const isPrivacy = currentPath === "/privacy-policy";
   const isTerms = currentPath === "/terms-and-conditions";
-  const is404 = !isHome && !isPrivacy && !isTerms;
+  const isCounsellingRequest = currentPath === "/counselling-request";
+
+  const is404 = !isHome && !isPrivacy && !isTerms && !isCounsellingRequest;
 
   return (
     <div
@@ -238,10 +242,16 @@ const App = () => {
         )}
       </main>
 
-      {activeAssistanceModal === "counselling" && (
+      {(isCounsellingRequest || activeAssistanceModal === "counselling") && (
         <RequestCounselling
           theme={theme}
-          onClose={() => setActiveAssistanceModal(null)}
+          onClose={() => {
+            if (isCounsellingRequest) {
+              navigateTo("/");
+            } else {
+              setActiveAssistanceModal(null);
+            }
+          }}
         />
       )}
 

@@ -38,6 +38,10 @@ export const DESTINATION_OPTIONS = [
   "Italy",
   "Canada",
   "United States",
+  "Canada",
+  "Ireland",
+  "New Zealand",
+  "Russia",
 ];
 
 export const DESTINATION_CARDS: DestinationCardData[] = [
@@ -125,6 +129,75 @@ export const DESTINATION_CARDS: DestinationCardData[] = [
       "Politecnico di Milano",
       "Sapienza University of Rome",
       "University of Milan",
+    ],
+  },
+  {
+    id: "canada",
+    country: "Canada",
+    tags: "PGWP up to 3 yrs · Co-op pathways · PR friendly",
+    image:
+      "https://images.unsplash.com/photo-1517935706615-2717063c2225?auto=format&fit=crop&w=800&q=80",
+    tuitionOverview:
+      "Average international tuition is ~CAD $24,000–$42,000/year depending on degree level and province, plus IRCC proof of living funds of at least CAD $23,448/year.",
+    visaHighlights:
+      "Up to 3-year Post-Graduation Work Permit (PGWP) for eligible programs, plus Express Entry PR pathways.",
+    topUniversities: [
+      "University of Toronto",
+      "University of British Columbia",
+      "McGill University",
+      "University of Waterloo",
+    ],
+  },
+
+  {
+    id: "ireland",
+    country: "Ireland",
+    tags: "2-yr Stay Back · EU tech hub · 1-yr Master's",
+    image:
+      "https://images.unsplash.com/photo-1590089415225-401ed6f9db8e?auto=format&fit=crop&w=800&q=80",
+    tuitionOverview:
+      "International tuition typically ranges from €12,000–€25,000/year (~₹11–23 Lakhs), with €10,000 proof of living funds for courses over 8 months.",
+    visaHighlights:
+      "2-year Stamp 1G stay-back visa for Master's graduates in a major European tech and pharma hub.",
+    topUniversities: [
+      "Trinity College Dublin",
+      "University College Dublin",
+      "University of Galway",
+      "University College Cork",
+    ],
+  },
+  {
+    id: "new-zealand",
+    country: "New Zealand",
+    tags: "Up to 3-yr work visa · Research excellence · Safe lifestyle",
+    image:
+      "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?auto=format&fit=crop&w=800&q=80",
+    tuitionOverview:
+      "International tuition ranges from NZD $26,000–$42,000/year (~₹13–21 Lakhs), plus NZD $20,000/year proof of living funds.",
+    visaHighlights:
+      "Up to 3-year open Post-Study Work Visa for Master's/PhD graduates and 20 hrs/week work during study.",
+    topUniversities: [
+      "University of Auckland",
+      "University of Otago",
+      "Victoria University of Wellington",
+      "University of Canterbury",
+    ],
+  },
+  {
+    id: "russia",
+    country: "Russia",
+    tags: "Affordable MBBS & STEM · English-taught · Low living cost",
+    image:
+      "https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&w=800&q=80",
+    tuitionOverview:
+      "International tuition typically ranges from USD $2,500–$6,000/year (~₹2–5 Lakhs) for MBBS and engineering programs, with affordable university hostel accommodation.",
+    visaHighlights:
+      "Annual renewable student visa via university sponsorship, plus up to 180-day post-graduation job-search stay.",
+    topUniversities: [
+      "Lomonosov Moscow State University",
+      "Sechenov First Moscow State Medical University",
+      "Saint Petersburg State University",
+      "Kazan Federal University",
     ],
   },
 ];

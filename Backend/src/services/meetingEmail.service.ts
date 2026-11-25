@@ -227,6 +227,5 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
     }),
   ]);
 
-
   return results;
 };
