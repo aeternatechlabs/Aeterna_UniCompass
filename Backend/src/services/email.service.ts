@@ -23,6 +23,28 @@ const escapeHtml = (value: string = ""): string => {
   return value.replace(/[&<>"']/g, (char) => entities[char] ?? char);
 };
 
+const sanitizeSenderName = (name: string = ""): string => {
+  return (
+    name
+      .replace(/[\r\n<>"]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim() || "Student"
+  );
+};
+
+const extractEmailAddress = (raw: string = ""): string => {
+  const trimmed = raw.trim().replace(/^["']|["']$/g, "");
+  const angleMatch = trimmed.match(/<([^>]+)>/);
+  const candidate = (angleMatch?.[1] ?? trimmed).trim();
+  const emailRegex = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
+
+  if (!emailRegex.test(candidate)) {
+    throw new Error(`Invalid SENDER_EMAIL format in .env: "${raw}"`);
+  }
+
+  return candidate;
+};
+
 const normalizeBranchTag = (preferredLocation?: string): string => {
   const trimmed = preferredLocation?.trim();
   if (!trimmed) return "";
@@ -158,6 +180,8 @@ export const sendAssistanceEmail = async (data: AssistanceEmailData) => {
     throw new Error("Resend email environment variables are missing.");
   }
 
+  const cleanSenderEmail = extractEmailAddress(senderEmail);
+  const safeSenderName = sanitizeSenderName(data.fullName);
   const branchTag = normalizeBranchTag(data.preferredLocation);
 
   const details = [
@@ -182,9 +206,9 @@ export const sendAssistanceEmail = async (data: AssistanceEmailData) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: `${data.fullName} (via Aeterna) <${senderEmail.trim()}>`,
+      from: `${safeSenderName} (via Aeterna) <${cleanSenderEmail}>`,
       to: [notificationEmail.trim()],
-      reply_to: data.email,
+      reply_to: data.email.trim(),
       subject: `${branchTag}New ${data.type} Request - Aeterna`,
       text: details,
       html: createEmailTemplate(data),
