@@ -21,6 +21,40 @@ const escapeHtml = (value: string): string => {
   return value.replace(/[&<>"']/g, (char) => entities[char] ?? char);
 };
 
+const sanitizeSenderName = (name: string = ""): string => {
+  return (
+    name
+      .replace(/[\r\n<>"]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim() || "Student"
+  );
+};
+
+const extractEmailAddress = (raw: string = ""): string => {
+  const trimmed = raw.trim().replace(/^["']|["']$/g, "");
+  const angleMatch = trimmed.match(/<([^>]+)>/);
+  const candidate = (angleMatch?.[1] ?? trimmed).trim();
+  const emailRegex = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
+
+  if (!emailRegex.test(candidate)) {
+    throw new Error(`Invalid SENDER_EMAIL format in .env: "${raw}"`);
+  }
+
+  return candidate;
+};
+
+const normalizeBranchTag = (preferredLocation?: string): string => {
+  const trimmed = preferredLocation?.trim();
+  if (!trimmed) return "";
+
+  const lower = trimmed.toLowerCase();
+  if (lower === "bangalore" || lower === "bengaluru") return "[Bengaluru] ";
+  if (lower === "mysore" || lower === "mysuru") return "[Mysuru] ";
+  if (lower === "belagavi" || lower === "belgaum") return "[Belagavi] ";
+
+  return `[${trimmed}] `;
+};
+
 const formatDate = (date: Date | string) => {
   return new Date(date).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -164,6 +198,10 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
     throw new Error("SENDER_EMAIL or ADMIN_NOTIFICATION_EMAIL is missing.");
   }
 
+  const cleanSenderEmail = extractEmailAddress(senderEmail);
+  const safeSenderName = sanitizeSenderName(data.fullName);
+  const branchTag = normalizeBranchTag(data.preferredLocation);
+
   const adminMessage = [
     "A new advisor meeting request has been submitted.",
     "",
@@ -200,10 +238,10 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
 
   const results = await Promise.all([
     sendResendEmail({
-      from: `${data.fullName} (via Aeterna) <${senderEmail.trim()}>`,
+      from: `${safeSenderName} (via Aeterna) <${cleanSenderEmail}>`,
       to: [notificationEmail.trim()],
-      reply_to: data.email,
-      subject: `New Advisor Meeting Request${data.preferredLocation ? ` - ${data.preferredLocation}` : ""} - Aeterna`,
+      reply_to: data.email.trim(),
+      subject: `${branchTag}New Advisor Meeting Request - Aeterna`,
       text: adminMessage,
       html: createEmailTemplate(
         "New Advisor Meeting Request",
@@ -214,8 +252,8 @@ export const sendMeetingRequestEmails = async (data: MeetingEmailData) => {
     }),
 
     sendResendEmail({
-      from: `Aeterna <${senderEmail.trim()}>`,
-      to: [data.email],
+      from: `Aeterna <${cleanSenderEmail}>`,
+      to: [data.email.trim()],
       subject: "Your Meeting Request Has Been Received - Aeterna",
       text: studentMessage,
       html: createEmailTemplate(
